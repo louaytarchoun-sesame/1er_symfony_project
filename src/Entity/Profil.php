@@ -10,28 +10,28 @@ class Profil
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\Column(length: 8)]
+    #[ORM\Column(type: 'string', length: 8)]
     private ?string $cin = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: 'string', length: 255)]
     private ?string $name = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: 'string', length: 255)]
     private ?string $last_name = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: 'string', length: 255)]
     private ?string $role = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: 'string', length: 255)]
     private ?string $image = null;
 
-    #[ORM\Column(length: 8)]
+    #[ORM\Column(type: 'string', length: 8)]
     private ?string $tel = null;
 
-    #[ORM\Column(length: 10)]
+    #[ORM\Column(type: 'string', length: 10)]
     private ?string $sexe = null;
 
     public function getId(): ?int

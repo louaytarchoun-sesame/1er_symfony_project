@@ -1,48 +1,28 @@
 <?php
+namespace App\Entity;
 
 
 
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * Medecin
- *
- * @ORM\Table(name="medecin", indexes={@ORM\Index(name="fk_specialite", columns={"specialite_id"})})
- * @ORM\Entity
- */
+#[ORM\Table(name: "medecin", indexes: [new ORM\Index(name: "fk_specialite", columns: ["specialite_id"])])]
+#[ORM\Entity]
 class Medecin
 {
-    /**
-     * @var int
-     *
-     * @ORM\Column(name="id", type="integer", nullable=false)
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="IDENTITY")
-     */
+    #[ORM\Id]
+    #[ORM\Column(name: "id", type: "integer", nullable: false)]
+    #[ORM\GeneratedValue(strategy: "IDENTITY")]
     private $id;
 
-    /**
-     * @var \DateTime|null
-     *
-     * @ORM\Column(name="date_embauche", type="date", nullable=true)
-     */
+    #[ORM\Column(name: "date_embauche", type: "date", nullable: true)]
     private $dateEmbauche;
 
-    /**
-     * @var int|null
-     *
-     * @ORM\Column(name="profile_id", type="integer", nullable=true)
-     */
-    private $profileId;
+    #[ORM\ManyToOne(targetEntity: Profil::class, inversedBy: null)]
+    #[ORM\JoinColumn(name: "profile_id", referencedColumnName: "id", nullable: true, onDelete: "SET NULL")]
+    private ?Profil $profile = null;
 
-    /**
-     * @var \Specialite
-     *
-     * @ORM\ManyToOne(targetEntity="Specialite")
-     * @ORM\JoinColumns({
-     *   @ORM\JoinColumn(name="specialite_id", referencedColumnName="id")
-     * })
-     */
+    #[ORM\ManyToOne(targetEntity: Specialite::class)]
+    #[ORM\JoinColumn(name: "specialite_id", referencedColumnName: "id")]
     private $specialite;
 
 
