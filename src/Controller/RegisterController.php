@@ -20,6 +20,16 @@ class RegisterController extends AbstractController
         if ($request->isMethod('POST')) {
             $data = $request->request;
 
+            // Check CIN uniqueness
+            $cinValue = (string)$data->get('cin');
+            if ($cinValue !== '') {
+                $existing = $em->getRepository(Profil::class)->findOneBy(['cin' => $cinValue]);
+                if ($existing) {
+                    $this->addFlash('warning', 'CIN already exists. Please use a different CIN.');
+                    return $this->redirectToRoute('app_register');
+                }
+            }
+
             $profil = new Profil();
             if ($data->get('cin')) $profil->setCin($data->get('cin'));
             if ($data->get('name')) $profil->setName($data->get('name'));
