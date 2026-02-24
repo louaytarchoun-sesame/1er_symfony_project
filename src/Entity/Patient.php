@@ -20,4 +20,34 @@ class Patient
     private ?Profil $profile = null;
 
 
+    public function getId()
+    {
+        return $this->id;
+    }
+
+    public function getDateInscription(): ?\DateTimeInterface
+    {
+        return $this->dateInscription;
+    }
+
+    public function setDateInscription(?\DateTimeInterface $date): self
+    {
+        $this->dateInscription = $date;
+
+        return $this;
+    }
+
+    public function getProfile(): ?Profil
+    {
+        return $this->profile;
+    }
+
+    public function setProfile(?Profil $profile): self
+    {
+        $this->profile = $profile;
+
+        return $this;
+    }
+
 }
+

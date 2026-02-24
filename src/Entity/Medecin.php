@@ -26,4 +26,46 @@ class Medecin
     private $specialite;
 
 
+    public function getId()
+    {
+        return $this->id;
+    }
+
+    public function getDateEmbauche(): ?\DateTimeInterface
+    {
+        return $this->dateEmbauche;
+    }
+
+    public function setDateEmbauche(?\DateTimeInterface $date): self
+    {
+        $this->dateEmbauche = $date;
+
+        return $this;
+    }
+
+    public function getProfile(): ?Profil
+    {
+        return $this->profile;
+    }
+
+    public function setProfile(?Profil $profile): self
+    {
+        $this->profile = $profile;
+
+        return $this;
+    }
+
+    public function getSpecialite(): ?Specialite
+    {
+        return $this->specialite;
+    }
+
+    public function setSpecialite(?Specialite $specialite): self
+    {
+        $this->specialite = $specialite;
+
+        return $this;
+    }
+
 }
+

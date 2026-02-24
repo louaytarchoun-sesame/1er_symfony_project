@@ -25,7 +25,7 @@ class Profil
     #[ORM\Column(type: 'string', length: 255)]
     private ?string $role = null;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $image = null;
 
     #[ORM\Column(type: 'string', length: 8)]
@@ -33,6 +33,9 @@ class Profil
 
     #[ORM\Column(type: 'string', length: 10)]
     private ?string $sexe = null;
+
+    #[ORM\Column(type: 'string', length: 255)]
+    private ?string $password = null;
 
     public function getId(): ?int
     {
@@ -119,6 +122,18 @@ class Profil
     public function setSexe(string $sexe): static
     {
         $this->sexe = $sexe;
+
+        return $this;
+    }
+
+    public function getPassword(): ?string
+    {
+        return $this->password;
+    }
+
+    public function setPassword(string $password): static
+    {
+        $this->password = $password;
 
         return $this;
     }
