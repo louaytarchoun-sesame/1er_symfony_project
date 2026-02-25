@@ -1,0 +1,33 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Profil détaillé{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <h1 class="mb-4">Profil détaillé</h1>
+    {% if profil %}
+    <div class="card mb-3">
+        <div class="row g-0">
+            <div class="col-md-4">
+                {% if profil.image %}
+                    <img src="{{ asset(profil.image) }}" class="img-fluid rounded-start" alt="Photo">
+                {% else %}
+                    <img src="https://via.placeholder.com/150" class="img-fluid rounded-start" alt="Photo">
+                {% endif %}
+            </div>
+            <div class="col-md-8">
+                <div class="card-body">
+                    <h5 class="card-title">{{ profil.name }} {{ profil.lastName }}</h5>
+                    <p class="card-text"><strong>CIN:</strong> {{ profil.cin }}</p>
+                    <p class="card-text"><strong>Rôle:</strong> {{ profil.role }}</p>
+                    <p class="card-text"><strong>Téléphone:</strong> {{ profil.tel }}</p>
+                    <p class="card-text"><strong>Sexe:</strong> {{ profil.sexe }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+        <div class="alert alert-warning">Aucun profil trouvé.</div>
+    {% endif %}
+</div>
+{% endblock %}

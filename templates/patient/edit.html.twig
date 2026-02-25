@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier patient{% endblock %}
+
+{% block body %}
+<h1>Modifier patient</h1>
+{{ form_start(form) }}
+    {{ form_row(form.dateInscription) }}
+    {{ form_row(form.profile) }}
+    <button class="btn btn-success">Enregistrer</button>
+{{ form_end(form) }}
+<a href="{{ path('patient_index') }}" class="btn btn-secondary mt-3">Retour à la liste</a>
+{% endblock %}
