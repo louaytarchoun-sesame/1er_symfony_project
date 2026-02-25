@@ -47,9 +47,10 @@ class Profil
         return $this->cin;
     }
 
-    public function setCin(?string $cin): self
+    public function setCin(string $cin): static
     {
         $this->cin = $cin;
+
         return $this;
     }
 
@@ -58,9 +59,10 @@ class Profil
         return $this->name;
     }
 
-    public function setName(?string $name): self
+    public function setName(string $name): static
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -69,9 +71,10 @@ class Profil
         return $this->last_name;
     }
 
-    public function setLastName(?string $last_name): self
+    public function setLastName(string $last_name): static
     {
         $this->last_name = $last_name;
+
         return $this;
     }
 
@@ -80,9 +83,10 @@ class Profil
         return $this->role;
     }
 
-    public function setRole(?string $role): self
+    public function setRole(string $role): static
     {
         $this->role = $role;
+
         return $this;
     }
 
@@ -91,9 +95,10 @@ class Profil
         return $this->image;
     }
 
-    public function setImage(?string $image): self
+    public function setImage(string $image): static
     {
         $this->image = $image;
+
         return $this;
     }
 
@@ -102,9 +107,10 @@ class Profil
         return $this->tel;
     }
 
-    public function setTel(?string $tel): self
+    public function setTel(string $tel): static
     {
         $this->tel = $tel;
+
         return $this;
     }
 
@@ -113,9 +119,10 @@ class Profil
         return $this->sexe;
     }
 
-    public function setSexe(?string $sexe): self
+    public function setSexe(string $sexe): static
     {
         $this->sexe = $sexe;
+
         return $this;
     }
 
