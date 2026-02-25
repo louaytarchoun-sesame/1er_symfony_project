@@ -25,5 +25,67 @@ class Medecin
     #[ORM\JoinColumn(name: "specialite_id", referencedColumnName: "id")]
     private $specialite;
 
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
 
+    public function getDateEmbauche(): ?\DateTimeInterface
+    {
+        return $this->dateEmbauche;
+    }
+
+    public function setDateEmbauche(?\DateTimeInterface $dateEmbauche): self
+    {
+        $this->dateEmbauche = $dateEmbauche;
+        return $this;
+    }
+
+    public function getProfile(): ?Profil
+    {
+        return $this->profile;
+    }
+
+    public function setProfile(?Profil $profile): self
+    {
+        $this->profile = $profile;
+        return $this;
+    }
+
+  public function getName(): ?string
+{
+    return $this->profile ? $this->profile->getNom() : null;
+}
+
+public function setName(string $name): self
+{
+    if ($this->profile) {
+        $this->profile->setNom($name);
+    }
+    return $this;
+}
+
+public function getLastName(): ?string
+{
+    return $this->profile ? $this->profile->getPrenom() : null;
+}
+
+public function setLastName(string $lastName): self
+{
+    if ($this->profile) {
+        $this->profile->setPrenom($lastName);
+    }
+    return $this;
+}
+
+    public function getSpecialite()
+    {
+        return $this->specialite;
+    }
+
+    public function setSpecialite($specialite): self
+    {
+        $this->specialite = $specialite;
+        return $this;
+    }
 }

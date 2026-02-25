@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des patients{% endblock %}
+
+{% block body %}
+<h1>Liste des patients</h1>
+<a href="{{ path('patient_new') }}" class="btn btn-primary mb-3">Ajouter un patient</a>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Date inscription</th>
+            <th>Profil</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for patient in patients %}
+        <tr>
+            <td>{{ patient.id }}</td>
+            <td>{{ patient.dateInscription|date('Y-m-d') }}</td>
+            <td>{{ patient.profile ? patient.profile.name ~ ' ' ~ patient.profile.last_name : '' }}</td>
+            <td>
+                <a href="{{ path('patient_show', {'id': patient.id}) }}" class="btn btn-info btn-sm">Voir</a>
+                <a href="{{ path('patient_edit', {'id': patient.id}) }}" class="btn btn-warning btn-sm">Modifier</a>
+                <form method="post" action="{{ path('patient_delete', {'id': patient.id}) }}" style="display:inline-block" onsubmit="return confirm('Supprimer ce patient ?');">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ patient.id) }}">
+                    <button class="btn btn-danger btn-sm">Supprimer</button>
+                </form>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

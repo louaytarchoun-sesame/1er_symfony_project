@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Accueil{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <h1 class="mb-4">Bienvenue sur l'application médicale</h1>
+    <div class="row">
+        <div class="col-md-3">
+            <a href="{{ path('patient_index') }}" class="btn btn-outline-primary btn-block mb-3">Patients</a>
+        </div>
+        <div class="col-md-3">
+            <a href="{{ path('medecin_index') }}" class="btn btn-outline-success btn-block mb-3">Médecins</a>
+        </div>
+        <div class="col-md-3">
+            <a href="{{ path('rendezvous_index') }}" class="btn btn-outline-info btn-block mb-3">Rendez-vous</a>
+        </div>
+        <div class="col-md-3">
+            <a href="{{ path('dashboard') }}" class="btn btn-outline-dark btn-block mb-3">Dashboard</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

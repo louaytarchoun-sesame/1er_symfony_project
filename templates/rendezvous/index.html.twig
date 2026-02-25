@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des rendez-vous{% endblock %}
+
+{% block body %}
+<h1>Liste des rendez-vous</h1>
+<a href="{{ path('rendezvous_new') }}" class="btn btn-primary mb-3">Ajouter un rendez-vous</a>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Date</th>
+            <th>Durée</th>
+            <th>Motif</th>
+            <th>Etat</th>
+            <th>Patient</th>
+            <th>Médecin</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for rv in rendezvous %}
+        <tr>
+            <td>{{ rv.id }}</td>
+            <td>{{ rv.date|date('Y-m-d H:i') }}</td>
+            <td>{{ rv.duree }}</td>
+            <td>{{ rv.motif }}</td>
+            <td>{{ rv.etat }}</td>
+            <td>{{ rv.patient ? rv.patient.id : '' }}</td>
+            <td>{{ rv.medecin ? rv.medecin.id : '' }}</td>
+            <td>
+                <a href="{{ path('rendezvous_show', {'id': rv.id}) }}" class="btn btn-info btn-sm">Voir</a>
+                <a href="{{ path('rendezvous_edit', {'id': rv.id}) }}" class="btn btn-warning btn-sm">Modifier</a>
+                <form method="post" action="{{ path('rendezvous_delete', {'id': rv.id}) }}" style="display:inline-block" onsubmit="return confirm('Supprimer ce rendez-vous ?');">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ rv.id) }}">
+                    <button class="btn btn-danger btn-sm">Supprimer</button>
+                </form>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

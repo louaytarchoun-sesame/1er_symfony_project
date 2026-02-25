@@ -15,5 +15,19 @@ class Specialite
     #[ORM\Column(name: "labelle", type: "string", length: 30, nullable: false)]
     private $labelle;
 
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
 
+    public function getLabelle(): ?string
+    {
+        return $this->labelle;
+    }
+
+    public function setLabelle(string $labelle): self
+    {
+        $this->labelle = $labelle;
+        return $this;
+    }
 }

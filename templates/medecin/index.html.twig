@@ -1,0 +1,46 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des medecins{% endblock %}
+
+{% block body %}
+<h1>Liste des medecins</h1>
+<a href="{{ path('medecin_new') }}" class="btn btn-primary mb-3">Ajouter un medecin</a>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Date embauche</th>
+            <th>Profil</th>
+            <th>Spécialité</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for medecin in medecins %}
+        <tr>
+            <td>{{ medecin.id }}</td>
+            <td>{{ medecin.dateEmbauche ? medecin.dateEmbauche|date('Y-m-d') : '' }}</td>
+            <td>
+                {% if medecin.profile %}
+                    {{ medecin.profile.name }} {{ medecin.profile.lastName }}
+                {% endif %}
+            </td>
+            <td>{{ medecin.specialite ? medecin.specialite.labelle : '' }}</td>
+            <td>
+                <a href="{{ path('medecin_show', {'id': medecin.id}) }}" class="btn btn-info btn-sm">Voir</a>
+                <a href="{{ path('medecin_edit', {'id': medecin.id}) }}" class="btn btn-warning btn-sm">Modifier</a>
+                <form method="post" action="{{ path('medecin_delete', {'id': medecin.id}) }}" style="display:inline-block" onsubmit="return confirm('Supprimer ce medecin ?');">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ medecin.id) }}">
+                    <button class="btn btn-danger btn-sm">Supprimer</button>
+                </form>
+            </td>
+        </tr>
+    {% else %}
+        <tr>
+            <td colspan="5" class="text-center">Aucun médecin trouvé.</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
