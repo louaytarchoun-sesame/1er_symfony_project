@@ -34,20 +34,21 @@ class RegisterController extends AbstractController
             if ($data->get('cin')) $profil->setCin($data->get('cin'));
             if ($data->get('name')) $profil->setName($data->get('name'));
             if ($data->get('last_name')) $profil->setLastName($data->get('last_name'));
-            // date of birth is required and used to determine role
-            if (!$data->get('date_naissance')) {
-                $this->addFlash('warning', 'Date de naissance is required.');
-                return $this->redirectToRoute('app_register');
+            // Role selected by user (patient or medecin)
+            $userType = $data->get('user_type');
+            // optional date of birth
+            if ($data->get('date_naissance')) {
+                try {
+                    $dob = new \DateTime($data->get('date_naissance'));
+                    $profil->setDateNaissance($dob);
+                } catch (\Exception $e) {
+                    // ignore invalid date
+                }
             }
-            try {
-                $dob = new \DateTime($data->get('date_naissance'));
-                $profil->setDateNaissance($dob);
-                $age = (int)$dob->diff(new \DateTime())->y;
-                $role = $age >= 25 ? 'medecin' : 'patient';
-                $profil->setRole($role);
-            } catch (\Exception $e) {
-                $this->addFlash('warning', 'Invalid date de naissance.');
-                return $this->redirectToRoute('app_register');
+            if ($userType) {
+                $profil->setRole($userType);
+            } else {
+                $profil->setRole('patient');
             }
             if ($data->get('image')) $profil->setImage($data->get('image'));
             if ($data->get('tel')) $profil->setTel($data->get('tel'));
