@@ -6,6 +6,7 @@ use App\Entity\Profil;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class ProfilType extends AbstractType
@@ -16,8 +17,8 @@ class ProfilType extends AbstractType
             ->add('cin', TextType::class, ['label' => 'CIN'])
             ->add('name', TextType::class, ['label' => 'Nom'])
             ->add('last_name', TextType::class, ['label' => 'Prénom'])
-            ->add('role', TextType::class, ['label' => 'Rôle'])
             ->add('image', TextType::class, ['label' => 'Image', 'required' => false])
+            ->add('dateNaissance', DateType::class, ['label' => 'Date de naissance', 'widget' => 'single_text', 'required' => false])
             ->add('tel', TextType::class, ['label' => 'Téléphone'])
             ->add('sexe', TextType::class, ['label' => 'Sexe']);
     }

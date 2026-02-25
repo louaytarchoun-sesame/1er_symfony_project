@@ -7,7 +7,7 @@
 <ul>
     <li>ID: {{ patient.id }}</li>
     <li>Date inscription: {{ patient.dateInscription|date('Y-m-d') }}</li>
-    <li>Profil: {{ patient.profile ? patient.profile.name ~ ' ' ~ patient.profile.last_name : '' }}</li>
+    <li>Profil: {{ patient.profile ? patient.profile.name ~ ' ' ~ patient.profile.lastName : '' }}</li>
 </ul>
 <a href="{{ path('patient_edit', {'id': patient.id}) }}" class="btn btn-warning">Modifier</a>
 <a href="{{ path('patient_index') }}" class="btn btn-secondary">Retour à la liste</a>

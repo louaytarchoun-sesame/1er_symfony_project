@@ -19,7 +19,7 @@
         <tr>
             <td>{{ patient.id }}</td>
             <td>{{ patient.dateInscription|date('Y-m-d') }}</td>
-            <td>{{ patient.profile ? patient.profile.name ~ ' ' ~ patient.profile.last_name : '' }}</td>
+            <td>{{ patient.profile ? patient.profile.name ~ ' ' ~ patient.profile.lastName : '' }}</td>
             <td>
                 <a href="{{ path('patient_show', {'id': patient.id}) }}" class="btn btn-info btn-sm">Voir</a>
                 <a href="{{ path('patient_edit', {'id': patient.id}) }}" class="btn btn-warning btn-sm">Modifier</a>

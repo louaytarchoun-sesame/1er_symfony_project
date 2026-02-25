@@ -7,7 +7,7 @@
 <ul>
     <li>ID: {{ medecin.id }}</li>
     <li>Date embauche: {{ medecin.dateEmbauche|date('Y-m-d') }}</li>
-    <li>Profil: {{ medecin.profile ? medecin.profile.name ~ ' ' ~ medecin.profile.last_name : '' }}</li>
+    <li>Profil: {{ medecin.profile ? medecin.profile.name ~ ' ' ~ medecin.profile.lastName : '' }}</li>
     <li>Spécialité: {{ medecin.specialite ? medecin.specialite.labelle : '' }}</li>
 </ul>
 <a href="{{ path('medecin_edit', {'id': medecin.id}) }}" class="btn btn-warning">Modifier</a>

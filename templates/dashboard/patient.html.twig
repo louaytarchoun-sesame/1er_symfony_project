@@ -1,0 +1,40 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Patient Dashboard{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+  <h1 class="mb-4">Welcome, {{ patient.profile.name }} {{ patient.profile.lastName }}</h1>
+  <div class="mb-3">
+    <a class="btn btn-primary" href="{{ path('rendezvous_new') }}">Create Rendez-vous</a>
+    <a class="btn btn-outline-secondary" href="{{ path('patient_edit', {'id': patient.id}) }}">Edit Profile</a>
+  </div>
+
+  <h2 class="mt-4">My Rendez-vous</h2>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Motif</th>
+        <th>Etat</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rendezvous %}
+        <tr>
+          <td>{{ r.date ? r.date|date('Y-m-d H:i') : '' }}</td>
+          <td>{{ r.motif }}</td>
+          <td>{{ r.etat }}</td>
+          <td>
+            <a class="btn btn-sm btn-outline-primary" href="{{ path('rendezvous_show', {'id': r.id}) }}">View</a>
+            <a class="btn btn-sm btn-outline-secondary" href="{{ path('rendezvous_edit', {'id': r.id}) }}">Edit</a>
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="4">No rendez-vous found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

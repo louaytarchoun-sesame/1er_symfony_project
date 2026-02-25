@@ -24,61 +24,24 @@ class LoginController extends AbstractController
             $password = (string)$request->request->get('password');
 
             $profil = $em->getRepository(Profil::class)->findOneBy(['cin' => $cin]);
-            if (!$profil) {
-                $error = 'Invalid credentials.';
-            } else {
-                if (!password_verify($password, (string)$profil->getPassword())) {
-                    $error = 'Invalid credentials.';
-                } else {
-                    // Build payload
-                    $payload = [
-                        'sub' => $profil->getId(),
-                        'cin' => $profil->getCin(),
-                        'name' => $profil->getName(),
-                        'last_name' => $profil->getLastName(),
-                        'role' => $profil->getRole(),
-                        'tel' => $profil->getTel(),
-                        'sexe' => $profil->getSexe(),
-                        'image' => $profil->getImage(),
-                    ];
-
-                    // Include patient or medecin data if exists
-                    $patient = $em->getRepository(Patient::class)->findOneBy(['profile' => $profil]);
-                    if ($patient) {
-                        $payload['patient'] = [
-                            'id' => $patient->getId(),
-                            'date_inscription' => $patient->getDateInscription() ? $patient->getDateInscription()->format('c') : null,
-                        ];
-                    }
-                    $medecin = $em->getRepository(Medecin::class)->findOneBy(['profile' => $profil]);
-                    if ($medecin) {
-                        $payload['medecin'] = [
-                            'id' => $medecin->getId(),
-                            'date_embauche' => $medecin->getDateEmbauche() ? $medecin->getDateEmbauche()->format('c') : null,
-                            'specialite' => $medecin->getSpecialite() ? $medecin->getSpecialite()->getLabelle() : null,
-                        ];
-                    }
-
-                    // Add iat/exp
-                    $now = time();
-                    $exp = $now + 60 * 60 * 24; // 24h
-                    $jwtPayload = array_merge($payload, ['iat' => $now, 'exp' => $exp]);
-
-                    // create JWT (HS256) using kernel.secret
-                    $header = ['alg' => 'HS256', 'typ' => 'JWT'];
-                    $base64UrlEncode = function ($data) {
-                        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
-                    };
-                    $headerEncoded = $base64UrlEncode(json_encode($header));
-                    $payloadEncoded = $base64UrlEncode(json_encode($jwtPayload));
-                    $secret = $this->getParameter('kernel.secret');
-                    $signature = hash_hmac('sha256', $headerEncoded . '.' . $payloadEncoded, $secret, true);
-                    $signatureEncoded = $base64UrlEncode($signature);
-                    $token = $headerEncoded . '.' . $payloadEncoded . '.' . $signatureEncoded;
-                }
+            if (!$profil || !password_verify($password, (string)$profil->getPassword())) {
+                $this->addFlash('warning', 'Wrong CIN or password.');
+                return $this->redirectToRoute('app_login');
             }
+
+            // Successful login: store profile id in session and redirect by role
+            $request->getSession()->set('profil_id', $profil->getId());
+            $this->addFlash('success', 'Logged in successfully.');
+            $role = strtolower((string)$profil->getRole());
+            if ($role === 'patient') {
+                return $this->redirectToRoute('dashboard_patient');
+            }
+            if ($role === 'medecin' || $role === 'médecin') {
+                return $this->redirectToRoute('dashboard_medecin');
+            }
+            return $this->redirectToRoute('dashboard_admin');
         }
 
-        return $this->render('login.html.twig', ['error' => $error, 'token' => $token, 'payload' => $payload]);
+        return $this->render('login/login.html.twig');
     }
 }

@@ -1,0 +1,52 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <h1 class="mb-4">Admin Dashboard</h1>
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Patients</h5>
+                    <p class="card-text">{{ patientsCount }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Médecins</h5>
+                    <p class="card-text">{{ medecinsCount }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-info mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Rendez-vous</h5>
+                    <p class="card-text">{{ rendezVousCount }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <h2>Rendez-vous par médecin</h2>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Médecin ID</th>
+                <th>Nombre de rendez-vous</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for row in rendezVousByMedecin %}
+            <tr>
+                <td>{{ row.medecin }}</td>
+                <td>{{ row.count }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

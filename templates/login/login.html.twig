@@ -1,4 +1,4 @@
-{% extends 'base.html.twig' %}
+{% extends 'base_auth.html.twig' %}
 
 {% block title %}Login{% endblock %}
 
@@ -12,21 +12,12 @@
     <div class="col-md-6">
       <div class="card shadow-sm">
         <div class="card-body">
-          <h3 class="card-title mb-4">Login</h3>
-          {% if error %}
-            <div class="alert alert-danger">{{ error }}</div>
-          {% endif %}
-          {% if token %}
-            <div class="alert alert-success">Token created. See below.</div>
-            <div class="mb-3">
-              <label class="form-label">JWT</label>
-              <textarea class="form-control" rows="3" readonly>{{ token }}</textarea>
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Payload</label>
-              <pre class="bg-light p-2">{{ payload|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre>
-            </div>
-          {% endif %}
+                <h3 class="card-title mb-4">Login</h3>
+                {% for label, messages in app.flashes %}
+                  {% for msg in messages %}
+                    <div class="alert alert-{{ label }}">{{ msg }}</div>
+                  {% endfor %}
+                {% endfor %}
 
           <form method="post" action="{{ path('app_login') }}">
             <div class="mb-3">

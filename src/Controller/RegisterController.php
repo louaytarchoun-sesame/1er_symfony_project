@@ -34,7 +34,21 @@ class RegisterController extends AbstractController
             if ($data->get('cin')) $profil->setCin($data->get('cin'));
             if ($data->get('name')) $profil->setName($data->get('name'));
             if ($data->get('last_name')) $profil->setLastName($data->get('last_name'));
-            if ($data->get('role')) $profil->setRole($data->get('role'));
+            // date of birth is required and used to determine role
+            if (!$data->get('date_naissance')) {
+                $this->addFlash('warning', 'Date de naissance is required.');
+                return $this->redirectToRoute('app_register');
+            }
+            try {
+                $dob = new \DateTime($data->get('date_naissance'));
+                $profil->setDateNaissance($dob);
+                $age = (int)$dob->diff(new \DateTime())->y;
+                $role = $age >= 25 ? 'medecin' : 'patient';
+                $profil->setRole($role);
+            } catch (\Exception $e) {
+                $this->addFlash('warning', 'Invalid date de naissance.');
+                return $this->redirectToRoute('app_register');
+            }
             if ($data->get('image')) $profil->setImage($data->get('image'));
             if ($data->get('tel')) $profil->setTel($data->get('tel'));
             if ($data->get('sexe')) $profil->setSexe($data->get('sexe'));
@@ -64,8 +78,7 @@ class RegisterController extends AbstractController
 
             $em->persist($profil);
 
-            $userType = $data->get('user_type');
-            if ($userType === 'patient') {
+            if (($profil->getRole()) === 'patient') {
                 $patient = new Patient();
                 $date = $data->get('date_inscription');
                 if ($date) {
@@ -103,6 +116,6 @@ class RegisterController extends AbstractController
         // Load specialities for the dropdown
         $specialites = $em->getRepository(Specialite::class)->findAll();
 
-        return $this->render('register.html.twig', ['specialites' => $specialites]);
+        return $this->render('register/register.html.twig', ['specialites' => $specialites]);
     }
 }

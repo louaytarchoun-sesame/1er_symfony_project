@@ -34,6 +34,9 @@ class Profil
     #[ORM\Column(type: 'string', length: 10)]
     private ?string $sexe = null;
 
+    #[ORM\Column(type: 'date', nullable: true)]
+    private ?\DateTimeInterface $dateNaissance = null;
+
     #[ORM\Column(type: 'string', length: 255)]
     private ?string $password = null;
 
@@ -122,6 +125,18 @@ class Profil
     public function setSexe(string $sexe): static
     {
         $this->sexe = $sexe;
+
+        return $this;
+    }
+
+    public function getDateNaissance(): ?\DateTimeInterface
+    {
+        return $this->dateNaissance;
+    }
+
+    public function setDateNaissance(?\DateTimeInterface $date): static
+    {
+        $this->dateNaissance = $date;
 
         return $this;
     }
