@@ -61,7 +61,7 @@ class RoleRedirectListener
         if ($user) {
             $dashboardByRole = $this->getDashboardByRole($user);
             foreach ($protectedDashboards as $dash) {
-                if (str_starts_with($path, $dash) && $path !== $dashboardByRole) {
+                if (str_starts_with($path, $dash) && !str_starts_with($path, $dashboardByRole)) {
                     $this->logger->info(sprintf(
                         'Redirecting user %s with role %s from %s to %s',
                         $user->getUserIdentifier(),

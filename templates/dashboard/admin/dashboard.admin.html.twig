@@ -5,6 +5,144 @@
 {% endblock %}
 
 {% block dashboard_content %}
-<h2>Admin Dashboard</h2>
-<p>Bienvenue Admin 👑</p>
+<h2 class="mb-4">Dashboard Admin <span class="badge bg-dark">👑</span></h2>
+
+{# ── Stat cards ── #}
+<div class="row g-3 mb-4">
+    <div class="col-md-4 col-lg-2">
+        <div class="card text-white bg-primary shadow-sm h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-people-fill fs-2"></i>
+                <h3 class="mt-2 mb-0">{{ totalUsers }}</h3>
+                <small>Total utilisateurs</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-2">
+        <div class="card text-white bg-info shadow-sm h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-person-badge-fill fs-2"></i>
+                <h3 class="mt-2 mb-0">{{ patientsCount }}</h3>
+                <small>Patients</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-2">
+        <div class="card text-white bg-success shadow-sm h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-heart-pulse-fill fs-2"></i>
+                <h3 class="mt-2 mb-0">{{ medecinsCount }}</h3>
+                <small>Médecins</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-2">
+        <div class="card text-white bg-warning shadow-sm h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-shield-lock-fill fs-2"></i>
+                <h3 class="mt-2 mb-0">{{ adminsCount }}</h3>
+                <small>Admins</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-2">
+        <div class="card text-white bg-danger shadow-sm h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-calendar-check-fill fs-2"></i>
+                <h3 class="mt-2 mb-0">{{ rdvCount }}</h3>
+                <small>Rendez-vous</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-2">
+        <div class="card text-white bg-secondary shadow-sm h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-tags-fill fs-2"></i>
+                <h3 class="mt-2 mb-0">{{ specialitesCount }}</h3>
+                <small>Spécialités</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    {# ── Rendez-vous by status ── #}
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white fw-bold">
+                <i class="bi bi-bar-chart-fill me-1"></i> Rendez-vous par statut
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-striped mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Statut</th>
+                            <th class="text-end">Nombre</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for row in rdvByStatus %}
+                        <tr>
+                            <td>
+                                {% if row.etat == 'confirmé' or row.etat == 'confirme' %}
+                                    <span class="badge bg-success">{{ row.etat ?? 'N/A' }}</span>
+                                {% elseif row.etat == 'annulé' or row.etat == 'annule' %}
+                                    <span class="badge bg-danger">{{ row.etat ?? 'N/A' }}</span>
+                                {% elseif row.etat == 'en_attente' %}
+                                    <span class="badge bg-warning text-dark">{{ row.etat ?? 'N/A' }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ row.etat ?? 'N/A' }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end fw-bold">{{ row.total }}</td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="2" class="text-muted text-center">Aucun rendez-vous</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {# ── Recent users ── #}
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-clock-history me-1"></i> Derniers inscrits</span>
+                <a href="{{ path('admin_users') }}" class="btn btn-sm btn-outline-primary">Voir tout</a>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-striped mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>CIN</th>
+                            <th>Nom</th>
+                            <th>Rôle</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for user in recentUsers %}
+                        <tr>
+                            <td>{{ user.cin }}</td>
+                            <td>{{ user.name }} {{ user.lastName }}</td>
+                            <td>
+                                {% if user.role == 'PATIENT' %}
+                                    <span class="badge bg-info">Patient</span>
+                                {% elseif user.role == 'MEDECIN' %}
+                                    <span class="badge bg-success">Médecin</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">{{ user.role }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="3" class="text-muted text-center">Aucun utilisateur</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
