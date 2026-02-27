@@ -14,17 +14,9 @@ security:
             security: false
 
         main:
+            pattern: ^/
             lazy: true
             provider: app_user_provider
             custom_authenticators:
                 - App\Security\JwtAuthenticator
             stateless: true
-
-        
-            
-            access_denied_url: /login 
-
-    access_control:
-        - { path: ^/dashboard/admin, roles: ROLE_ADMIN }
-        - { path: ^/dashboard/medecin, roles: ROLE_MEDECIN }
-        - { path: ^/dashboard/patient, roles: ROLE_PATIENT }

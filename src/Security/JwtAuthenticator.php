@@ -5,13 +5,13 @@ use App\Entity\Profil;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Security\Http\Authenticator\AbstractAuthenticator;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
@@ -27,13 +27,15 @@ class JwtAuthenticator extends AbstractAuthenticator
     }
 
     public function supports(Request $request): ?bool
-{
-    $jwt = $request->cookies->get('jwt');
-    return $jwt && $jwt !== '';
-}
+    {
+        $jwt = $request->cookies->get('jwt');
+        return $jwt && $jwt !== '';
+    }
+
     public function authenticate(Request $request): Passport
     {
         $jwt = $request->cookies->get('jwt');
+
         if (!$jwt) {
             throw new AuthenticationException('JWT missing');
         }
@@ -71,6 +73,7 @@ class JwtAuthenticator extends AbstractAuthenticator
         Request $request,
         AuthenticationException $exception
     ): ?Response {
-        return new JsonResponse(['error' => $exception->getMessage()], 401);
+        // Redirection si pas connecté ou JWT invalide
+        return new RedirectResponse('/login');
     }
 }
