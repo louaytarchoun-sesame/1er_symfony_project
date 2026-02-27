@@ -29,7 +29,11 @@ services:
         arguments:
             $jwtSecret: '%jwt_secret%'
 
-    # Event listener
+    # Event listeners
+    App\EventListener\AdminInitListener:
+        tags:
+            - { name: kernel.event_listener, event: kernel.request, method: onKernelRequest, priority: 100 }
+
     App\EventListener\RoleRedirectListener:
         tags:
             - { name: kernel.event_listener, event: kernel.request, method: onKernelRequest, priority: 0 }
