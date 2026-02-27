@@ -1,0 +1,105 @@
+{% extends 'dashboard/layout.html.twig' %}
+
+{% block title %}Mes Rendez-vous{% endblock %}
+
+{% block sidebar %}
+    {% include 'dashboard/patient/_sidebar.html.twig' %}
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-calendar-check-fill me-2"></i>Mes Rendez-vous</h2>
+    <span class="badge bg-primary fs-6">{{ rendezvous|length }} rendez-vous</span>
+</div>
+
+{# ── Filter dropdown ── #}
+<div class="card shadow-sm mb-4">
+    <div class="card-body py-2 d-flex align-items-center gap-3">
+        <label for="filterEtat" class="form-label mb-0 fw-bold">Filtrer :</label>
+        <select id="filterEtat" class="form-select w-auto">
+            <option value="all">Tous</option>
+            <option value="en_attente">En attente</option>
+            <option value="confirmé">Confirmé</option>
+        </select>
+    </div>
+</div>
+
+{# ── Table ── #}
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-hover align-middle mb-0" id="rdvTable">
+            <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>Heure</th>
+                    <th>Durée</th>
+                    <th>Médecin</th>
+                    <th>Motif</th>
+                    <th>Statut</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for rdv in rendezvous %}
+                <tr data-etat="{{ rdv.etat }}">
+                    <td>{{ rdv.date|date('d/m/Y') }}</td>
+                    <td>{{ rdv.date|date('H:i') }}</td>
+                    <td>{{ rdv.duree }} min</td>
+                    <td>
+                        {% if rdv.medecin and rdv.medecin.profile %}
+                            Dr. {{ rdv.medecin.profile.name }} {{ rdv.medecin.profile.lastName }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                    <td>{{ rdv.motif ?? '-' }}</td>
+                    <td>
+                        {% if rdv.etat == 'confirmé' or rdv.etat == 'confirme' %}
+                            <span class="badge bg-success">Confirmé</span>
+                        {% elseif rdv.etat == 'en_attente' %}
+                            <span class="badge bg-warning text-dark">En attente</span>
+                        {% elseif rdv.etat == 'annulé' or rdv.etat == 'annule' %}
+                            <span class="badge bg-danger">Annulé</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ rdv.etat ?? 'N/A' }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">Aucun rendez-vous trouvé.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<p id="noResults" class="text-center text-muted mt-3 d-none">Aucun rendez-vous ne correspond au filtre.</p>
+{% endblock %}
+
+{% block javascripts %}
+<script data-turbo-eval="false">
+(function () {
+    const filter = document.getElementById('filterEtat');
+    const rows   = document.querySelectorAll('#rdvTable tbody tr[data-etat]');
+    const noRes  = document.getElementById('noResults');
+
+    filter.onchange = function () {
+        const val = this.value;
+        let visible = 0;
+
+        rows.forEach(function (row) {
+            const etat = row.getAttribute('data-etat');
+            if (val === 'all' || etat === val) {
+                row.style.display = '';
+                visible++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        noRes.classList.toggle('d-none', visible > 0);
+    });
+})();
+</script>
+{% endblock %}

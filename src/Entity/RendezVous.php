@@ -38,5 +38,29 @@ class RendezVous
     #[ORM\JoinColumn(name: "medecin_id", referencedColumnName: "id")]
     private $medecin;
 
+    public function getId() { return $this->id; }
 
+    public function getDate(): ?\DateTimeInterface { return $this->date; }
+    public function setDate(\DateTimeInterface $date): self { $this->date = $date; return $this; }
+
+    public function getDuree(): ?int { return $this->duree; }
+    public function setDuree(?int $duree): self { $this->duree = $duree; return $this; }
+
+    public function getMotif(): ?string { return $this->motif; }
+    public function setMotif(?string $motif): self { $this->motif = $motif; return $this; }
+
+    public function getEtat(): ?string { return $this->etat; }
+    public function setEtat(?string $etat): self { $this->etat = $etat; return $this; }
+
+    public function getCreatedAt(): ?\DateTimeInterface { return $this->createdAt instanceof \DateTimeInterface ? $this->createdAt : null; }
+    public function setCreatedAt(\DateTimeInterface $createdAt): self { $this->createdAt = $createdAt; return $this; }
+
+    public function getUpdatedAt(): ?\DateTimeInterface { return $this->updatedAt instanceof \DateTimeInterface ? $this->updatedAt : null; }
+    public function setUpdatedAt(\DateTimeInterface $updatedAt): self { $this->updatedAt = $updatedAt; return $this; }
+
+    public function getPatient(): ?Patient { return $this->patient; }
+    public function setPatient(?Patient $patient): self { $this->patient = $patient; return $this; }
+
+    public function getMedecin(): ?Medecin { return $this->medecin; }
+    public function setMedecin(?Medecin $medecin): self { $this->medecin = $medecin; return $this; }
 }

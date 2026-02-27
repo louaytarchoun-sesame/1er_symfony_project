@@ -103,7 +103,7 @@
 
       function updateSections() {
         if (!roleSelect) return;
-        if (roleSelect.value === 'medecin') {
+        if (roleSelect.value.toUpperCase() === 'MEDECIN') {
           medecinSection.style.display = '';
         } else {
           medecinSection.style.display = 'none';

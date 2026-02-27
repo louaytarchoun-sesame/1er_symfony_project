@@ -1,10 +1,288 @@
 {% extends 'dashboard/layout.html.twig' %}
 
+{% block title %}Accueil - Prendre un rendez-vous{% endblock %}
+
 {% block sidebar %}
     {% include 'dashboard/patient/_sidebar.html.twig' %}
 {% endblock %}
 
+{% block stylesheets %}
+<style>
+    .slot-btn { width: 90px; }
+    .slot-btn.booked { opacity: 0.4; cursor: not-allowed; }
+    .medecin-card { cursor: pointer; transition: transform .15s, box-shadow .15s; }
+    .medecin-card:hover { transform: translateY(-3px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; }
+    .medecin-card.selected { border: 3px solid #667eea !important; }
+    .step-section { display: none; }
+    .step-section.active { display: block; }
+</style>
+{% endblock %}
+
 {% block dashboard_content %}
-<h2>Patient Dashboard</h2>
-<p>Bienvenue Patient</p>
+<h2 class="mb-4"><i class="bi bi-calendar-plus me-2"></i>Prendre un rendez-vous</h2>
+
+{# ═══ STEP 1: Choose Spécialité ═══ #}
+<div id="step1" class="step-section active">
+    <div class="card shadow-sm">
+        <div class="card-header bg-white fw-bold">
+            <span class="badge bg-primary me-2">1</span> Choisir une spécialité
+        </div>
+        <div class="card-body">
+            <select id="specialiteSelect" class="form-select form-select-lg">
+                <option value="">-- Sélectionnez une spécialité --</option>
+                {% for s in specialites %}
+                    <option value="{{ s.id }}">{{ s.labelle }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+</div>
+
+{# ═══ STEP 2: Choose Médecin ═══ #}
+<div id="step2" class="step-section mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+            <span><span class="badge bg-primary me-2">2</span> Choisir un médecin</span>
+            <button class="btn btn-sm btn-outline-secondary" onclick="goToStep(1)"><i class="bi bi-arrow-left"></i> Retour</button>
+        </div>
+        <div class="card-body">
+            <div id="medecinsContainer" class="row g-3">
+                <p class="text-muted">Chargement...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ═══ STEP 3: Choose Date & Slot ═══ #}
+<div id="step3" class="step-section mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+            <span><span class="badge bg-primary me-2">3</span> Choisir une date et un créneau</span>
+            <button class="btn btn-sm btn-outline-secondary" onclick="goToStep(2)"><i class="bi bi-arrow-left"></i> Retour</button>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label for="dateInput" class="form-label fw-bold">Date</label>
+                <input type="date" id="dateInput" class="form-control w-auto" min="{{ "now"|date("Y-m-d") }}">
+            </div>
+            <div id="slotsContainer" class="d-flex flex-wrap gap-2">
+                <p class="text-muted">Sélectionnez une date pour voir les créneaux disponibles.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ═══ STEP 4: Motif + Confirm ═══ #}
+<div id="step4" class="step-section mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+            <span><span class="badge bg-primary me-2">4</span> Motif et confirmation</span>
+            <button class="btn btn-sm btn-outline-secondary" onclick="goToStep(3)"><i class="bi bi-arrow-left"></i> Retour</button>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Créneau sélectionné</label>
+                <p id="selectedSlotInfo" class="fs-5"></p>
+            </div>
+            <div class="mb-3">
+                <label for="motifInput" class="form-label fw-bold">Motif de la consultation</label>
+                <textarea id="motifInput" class="form-control" rows="3" placeholder="Décrivez brièvement le motif..."></textarea>
+            </div>
+            <button id="confirmBtn" class="btn btn-success btn-lg">
+                <i class="bi bi-check-circle me-1"></i> Confirmer le rendez-vous
+            </button>
+        </div>
+    </div>
+</div>
+
+{# ═══ Success message ═══ #}
+<div id="successMsg" class="step-section mt-4">
+    <div class="alert alert-success fs-5 text-center">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        Votre rendez-vous a été créé avec succès ! Il est en attente de confirmation par le médecin.
+        <br><a href="{{ path('patient_rendezvous') }}" class="btn btn-outline-success mt-3">Voir mes rendez-vous</a>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+<script data-turbo-eval="false">
+(function () {
+    const URL_MEDECINS = '{{ path('patient_api_medecins', {specialiteId: '__SPEC__'}) }}';
+    const URL_SLOTS    = '{{ path('patient_api_slots', {medecinId: '__MED__', date: '__DATE__'}) }}';
+    const URL_BOOK     = '{{ path('patient_api_book') }}';
+
+    let selectedSpecialiteId = null;
+    let selectedMedecinId = null;
+    let selectedDate = null;
+    let selectedTime = null;
+
+    // ── Step navigation ──
+    window.goToStep = function (n) {
+        document.querySelectorAll('.step-section').forEach(s => s.classList.remove('active'));
+        document.getElementById('step' + n).classList.add('active');
+    };
+
+    // ── STEP 1: Spécialité changed (use onchange to avoid stacking) ──
+    document.getElementById('specialiteSelect').onchange = function () {
+        selectedSpecialiteId = this.value;
+        if (!selectedSpecialiteId) return;
+
+        goToStep(2);
+        document.getElementById('medecinsContainer').innerHTML = '<p class="text-muted">Chargement...</p>';
+
+        const url = URL_MEDECINS.replace('__SPEC__', selectedSpecialiteId);
+        fetch(url, { credentials: 'same-origin' })
+            .then(r => {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json();
+            })
+            .then(medecins => {
+                const container = document.getElementById('medecinsContainer');
+                if (medecins.length === 0) {
+                    container.innerHTML = '<p class="text-muted">Aucun médecin trouvé pour cette spécialité.</p>';
+                    return;
+                }
+
+                let html = '';
+                medecins.forEach(m => {
+                    let imgSrc;
+                    if (m.image) {
+                        imgSrc = '/' + m.image.replace(/^\/?/, '');
+                    } else {
+                        imgSrc = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(m.name + ' ' + m.lastName) + '&background=667eea&color=fff&size=150';
+                    }
+                    const locLink = m.localisation
+                        ? '<a href="' + m.localisation + '" target="_blank" class="btn btn-sm btn-outline-info mt-2"><i class="bi bi-geo-alt-fill"></i> Localisation</a>'
+                        : '<span class="text-muted mt-2 d-block"><small>Pas de localisation</small></span>';
+
+                    html += `
+                        <div class="col-md-4 col-lg-3">
+                            <div class="card medecin-card h-100 text-center p-3" data-medecin-id="${m.id}">
+                                <img src="${imgSrc}" class="rounded-circle mx-auto" style="width:100px;height:100px;object-fit:cover;" alt="Photo">
+                                <h6 class="mt-3 mb-0">Dr. ${m.name} ${m.lastName}</h6>
+                                <small class="text-muted">${m.specialite}</small>
+                                ${locLink}
+                            </div>
+                        </div>`;
+                });
+                container.innerHTML = html;
+
+                // Attach click events (onclick = replace, not stack)
+                container.querySelectorAll('.medecin-card').forEach(card => {
+                    card.onclick = function () {
+                        container.querySelectorAll('.medecin-card').forEach(c => c.classList.remove('selected'));
+                        this.classList.add('selected');
+                        selectedMedecinId = this.dataset.medecinId;
+                        goToStep(3);
+
+                        const today = new Date().toISOString().split('T')[0];
+                        document.getElementById('dateInput').min = today;
+                        document.getElementById('dateInput').value = '';
+                        document.getElementById('slotsContainer').innerHTML = '<p class="text-muted">Sélectionnez une date pour voir les créneaux disponibles.</p>';
+                    };
+                });
+            })
+            .catch(err => {
+                console.error('Erreur fetch medecins:', err);
+                document.getElementById('medecinsContainer').innerHTML = '<p class="text-danger">Erreur de chargement des médecins.</p>';
+            });
+    };
+
+    // ── STEP 3: Date changed → load slots ──
+    document.getElementById('dateInput').onchange = function () {
+        selectedDate = this.value;
+        if (!selectedDate || !selectedMedecinId) return;
+
+        const container = document.getElementById('slotsContainer');
+        container.innerHTML = '<p class="text-muted">Chargement des créneaux...</p>';
+
+        const url = URL_SLOTS.replace('__MED__', selectedMedecinId).replace('__DATE__', selectedDate);
+        fetch(url, { credentials: 'same-origin' })
+            .then(r => {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json();
+            })
+            .then(slots => {
+                if (slots.error) {
+                    container.innerHTML = '<p class="text-danger">' + slots.error + '</p>';
+                    return;
+                }
+
+                let html = '';
+                slots.forEach(s => {
+                    if (s.booked) {
+                        html += `<button class="btn btn-outline-secondary slot-btn booked" disabled>${s.time}</button>`;
+                    } else {
+                        html += `<button class="btn btn-outline-primary slot-btn" data-time="${s.time}">${s.time}</button>`;
+                    }
+                });
+
+                if (!html) {
+                    html = '<p class="text-muted">Aucun créneau pour cette date.</p>';
+                }
+                container.innerHTML = html;
+
+                // Attach click events to available slots (onclick = replace, not stack)
+                container.querySelectorAll('.slot-btn:not(.booked)').forEach(btn => {
+                    btn.onclick = function () {
+                        container.querySelectorAll('.slot-btn:not(.booked)').forEach(b => {
+                            b.classList.remove('btn-primary');
+                            b.classList.add('btn-outline-primary');
+                        });
+                        this.classList.remove('btn-outline-primary');
+                        this.classList.add('btn-primary');
+                        selectedTime = this.dataset.time;
+
+                        document.getElementById('selectedSlotInfo').textContent =
+                            selectedDate + ' à ' + selectedTime;
+                        goToStep(4);
+                    };
+                });
+            })
+            .catch(err => {
+                console.error('Erreur fetch slots:', err);
+                container.innerHTML = '<p class="text-danger">Erreur de chargement des créneaux.</p>';
+            });
+    };
+
+    // ── STEP 4: Confirm booking ──
+    document.getElementById('confirmBtn').onclick = function () {
+        const motif = document.getElementById('motifInput').value.trim();
+        const btn = this;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> En cours...';
+
+        fetch(URL_BOOK, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                medecinId: parseInt(selectedMedecinId),
+                date: selectedDate,
+                time: selectedTime,
+                motif: motif
+            })
+        })
+        .then(r => r.json().then(body => ({ ok: r.ok, status: r.status, body: body })))
+        .then(({ ok, status, body }) => {
+            if (ok && body.success) {
+                document.querySelectorAll('.step-section').forEach(s => s.classList.remove('active'));
+                document.getElementById('successMsg').classList.add('active');
+            } else {
+                alert(body.error || 'Erreur lors de la réservation (HTTP ' + status + ')');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-check-circle me-1"></i> Confirmer le rendez-vous';
+            }
+        })
+        .catch(err => {
+            console.error('Erreur booking:', err);
+            alert('Erreur réseau: ' + err.message);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check-circle me-1"></i> Confirmer le rendez-vous';
+        });
+    };
+})();
+</script>
 {% endblock %}

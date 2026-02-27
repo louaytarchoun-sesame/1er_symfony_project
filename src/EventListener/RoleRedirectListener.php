@@ -3,7 +3,7 @@ namespace App\EventListener;
 
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
-use Symfony\Component\Security\Core\Security;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 class RoleRedirectListener
@@ -26,12 +26,15 @@ class RoleRedirectListener
         $request = $event->getRequest();
         $path = rtrim($request->getPathInfo(), '/');
 
-        // ❌ Routes à exclure (assets, profiler, etc.)
+        // ❌ Routes à exclure (assets, profiler, API, etc.)
         $excluded = [
             '/_profiler',
             '/_wdt',
             '/favicon.ico',
             '/assets',
+            '/dashboard/patient/api',
+            '/dashboard/medecin/api',
+            '/dashboard/admin/api',
         ];
         foreach ($excluded as $ex) {
             if (str_starts_with($path, $ex)) {
@@ -61,7 +64,7 @@ class RoleRedirectListener
         if ($user) {
             $dashboardByRole = $this->getDashboardByRole($user);
             foreach ($protectedDashboards as $dash) {
-                if (str_starts_with($path, $dash) && $path !== $dashboardByRole) {
+                if (str_starts_with($path, $dash) && !str_starts_with($path, $dashboardByRole)) {
                     $this->logger->info(sprintf(
                         'Redirecting user %s with role %s from %s to %s',
                         $user->getUserIdentifier(),
