@@ -1,0 +1,14 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier medecin{% endblock %}
+
+{% block body %}
+<h1>Modifier medecin</h1>
+{{ form_start(form) }}
+    {{ form_row(form.dateEmbauche) }}
+    {{ form_row(form.profile) }}
+    {{ form_row(form.specialite) }}
+    <button class="btn btn-success">Enregistrer</button>
+{{ form_end(form) }}
+<a href="{{ path('medecin_index') }}" class="btn btn-secondary mt-3">Retour à la liste</a>
+{% endblock %}

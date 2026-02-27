@@ -1,0 +1,119 @@
+{% extends 'base_auth.html.twig' %}
+
+{% block title %}Sign up{% endblock %}
+
+{% block stylesheets %}
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block body %}
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h3 class="card-title mb-4">Sign Up</h3>
+          <form id="signupForm" method="post" action="{{ path('app_register') }}" enctype="multipart/form-data">
+            {% for label, messages in app.flashes %}
+              {% for msg in messages %}
+                <div class="alert alert-{{ label }}">{{ msg }}</div>
+              {% endfor %}
+            {% endfor %}
+            <div class="mb-3">
+              <label class="form-label">You are</label>
+              <select id="roleSelect" name="role" class="form-select">
+                <option value="PATIENT" selected>Patient</option>
+                <option value="MEDECIN">Medecin</option>
+              </select>
+            </div>
+
+            <hr>
+            <h5>Profil</h5>
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label class="form-label">CIN</label>
+                <input name="cin" type="text" class="form-control" maxlength="8">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Telephone</label>
+                <input name="tel" type="text" class="form-control" maxlength="8">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">First name</label>
+                <input name="name" type="text" class="form-control">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Last name</label>
+                <input name="last_name" type="text" class="form-control">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Sexe</label>
+                <select name="sexe" class="form-select">
+                  <option value="M">M</option>
+                  <option value="F">F</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Password</label>
+                <input name="password" type="password" class="form-control" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Date de naissance</label>
+                <input id="dobInput" name="date_naissance" type="date" class="form-control">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Profil Image</label>
+                <input name="image" type="file" accept="image/*" class="form-control">
+              </div>
+            </div>
+
+            <div id="medecinSection" style="display:none;">
+              <hr>
+              <h5>Medecin</h5>
+              <div class="mb-3">
+                <label class="form-label">Date d'embauche</label>
+                <input name="date_embauche" type="date" class="form-control">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Specialité</label>
+                <select name="specialite_id" class="form-select">
+                  <option value="">-- Select Specialité --</option>
+                  {% for s in specialites %}
+                    <option value="{{ s.id }}">{{ s.labelle }}</option>
+                  {% else %}
+                    <option value="">(no specialities)</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-primary">Sign up</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% block javascripts %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      const roleSelect = document.getElementById('roleSelect');
+      const medecinSection = document.getElementById('medecinSection');
+
+      function updateSections() {
+        if (!roleSelect) return;
+        if (roleSelect.value === 'medecin') {
+          medecinSection.style.display = '';
+        } else {
+          medecinSection.style.display = 'none';
+        }
+      }
+
+      if (roleSelect) {
+        roleSelect.addEventListener('change', updateSections);
+        updateSections();
+      }
+    </script>
+  {% endblock %}
+{% endblock %}

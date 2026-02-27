@@ -16,4 +16,23 @@ class Specialite
     private $labelle;
 
 
+
+
+    public function getId()
+    {
+        return $this->id;
+    }
+
+    public function getLabelle(): ?string
+    {
+        return $this->labelle;
+    }
+
+    public function setLabelle(string $labelle): self
+    {
+        $this->labelle = $labelle;
+
+        return $this;
+    }
+
 }
