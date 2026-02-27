@@ -20,8 +20,17 @@ class ProfilType extends AbstractType
             ->add('image', TextType::class, ['label' => 'Image', 'required' => false])
             ->add('dateNaissance', DateType::class, ['label' => 'Date de naissance', 'widget' => 'single_text', 'required' => false])
             ->add('tel', TextType::class, ['label' => 'Téléphone'])
-            ->add('sexe', TextType::class, ['label' => 'Sexe']);
-    }
+            ->add('sexe', TextType::class, ['label' => 'Sexe'])
+            ->add('role', ChoiceType::class, [
+            'choices'  => [
+                'Admin' => 'ADMIN',
+                'Patient' => 'PATIENT',
+                'Médecin' => 'MEDECIN',
+            ],
+            'expanded' => false,
+            'multiple' => false,
+                ]);    
+            }
 
     public function configureOptions(OptionsResolver $resolver)
     {

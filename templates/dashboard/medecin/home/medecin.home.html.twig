@@ -1,0 +1,30 @@
+{% extends 'dashboard/layout.html.twig' %}
+
+{% block title %}Medecin Dashboard{% endblock %}
+
+{% block sidebar %}
+    {% include 'dashboard/medecin/_sidebar.html.twig' %}
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container mt-5">
+  <h1 class="mb-4">Dr. {{ medecin.profile.name }} {{ medecin.profile.lastName }}</h1>
+  
+
+  <h2 class="mt-4">My Rendez-vous</h2>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Patient</th>
+        <th>Motif</th>
+        <th>Etat</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+    
+    </tbody>
+  </table>
+</div>
+{% endblock %}

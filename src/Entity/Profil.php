@@ -4,16 +4,18 @@ namespace App\Entity;
 
 use App\Repository\ProfilRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
 #[ORM\Entity(repositoryClass: ProfilRepository::class)]
-class Profil
+class Profil implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 8)]
+    #[ORM\Column(type: 'string', length: 8, unique: true)]
     private ?string $cin = null;
 
     #[ORM\Column(type: 'string', length: 255)]
@@ -40,6 +42,7 @@ class Profil
     #[ORM\Column(type: 'string', length: 255)]
     private ?string $password = null;
 
+
     public function getId(): ?int
     {
         return $this->id;
@@ -53,7 +56,6 @@ class Profil
     public function setCin(string $cin): static
     {
         $this->cin = $cin;
-
         return $this;
     }
 
@@ -65,7 +67,6 @@ class Profil
     public function setName(string $name): static
     {
         $this->name = $name;
-
         return $this;
     }
 
@@ -77,7 +78,6 @@ class Profil
     public function setLastName(string $last_name): static
     {
         $this->last_name = $last_name;
-
         return $this;
     }
 
@@ -87,21 +87,26 @@ class Profil
     }
 
     public function setRole(string $role): static
-    {
-        $this->role = $role;
+{
+    $role = strtoupper($role);
 
-        return $this;
+    $allowedRoles = ['ADMIN', 'PATIENT', 'MEDECIN'];
+    if (!in_array($role, $allowedRoles, true)) {
+        throw new \InvalidArgumentException("Rôle invalide. Seuls ADMIN, PATIENT ou MEDECIN sont autorisés.");
     }
+
+    $this->role = $role;
+    return $this;
+}
 
     public function getImage(): ?string
     {
         return $this->image;
     }
 
-    public function setImage(string $image): static
+    public function setImage(?string $image): static
     {
         $this->image = $image;
-
         return $this;
     }
 
@@ -113,7 +118,6 @@ class Profil
     public function setTel(string $tel): static
     {
         $this->tel = $tel;
-
         return $this;
     }
 
@@ -125,7 +129,6 @@ class Profil
     public function setSexe(string $sexe): static
     {
         $this->sexe = $sexe;
-
         return $this;
     }
 
@@ -137,7 +140,6 @@ class Profil
     public function setDateNaissance(?\DateTimeInterface $date): static
     {
         $this->dateNaissance = $date;
-
         return $this;
     }
 
@@ -149,7 +151,25 @@ class Profil
     public function setPassword(string $password): static
     {
         $this->password = $password;
-
         return $this;
     }
+
+    public function getUserIdentifier(): string
+    {
+        return (string) $this->cin;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getRoles(): array
+{
+    return ['ROLE_' . strtoupper($this->role)];
+}
+
+    public function eraseCredentials(): void
+{
+    // Ici, on pourrait effacer un mot de passe en clair temporaire
+    // comme $this->plainPassword = null; si tu en avais un
+}
 }

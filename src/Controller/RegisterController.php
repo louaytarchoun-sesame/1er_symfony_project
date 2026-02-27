@@ -35,7 +35,7 @@ class RegisterController extends AbstractController
             if ($data->get('name')) $profil->setName($data->get('name'));
             if ($data->get('last_name')) $profil->setLastName($data->get('last_name'));
             // Role selected by user (patient or medecin)
-            $userType = $data->get('user_type');
+            $userType = $data->get('role');
             // optional date of birth
             if ($data->get('date_naissance')) {
                 try {
@@ -48,7 +48,7 @@ class RegisterController extends AbstractController
             if ($userType) {
                 $profil->setRole($userType);
             } else {
-                $profil->setRole('patient');
+                $profil->setRole('PATIENT');
             }
             if ($data->get('image')) $profil->setImage($data->get('image'));
             if ($data->get('tel')) $profil->setTel($data->get('tel'));
