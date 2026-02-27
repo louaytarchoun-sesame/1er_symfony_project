@@ -1,0 +1,81 @@
+{% extends 'dashboard/layout.html.twig' %}
+
+{% block title %}Mon Profil{% endblock %}
+
+{% block sidebar %}
+    {% include 'dashboard/patient/_sidebar.html.twig' %}
+{% endblock %}
+
+{% block dashboard_content %}
+<h2 class="mb-4"><i class="bi bi-person-fill me-2"></i>Mon Profil</h2>
+
+{% for type, messages in app.flashes %}
+    {% for message in messages %}
+        <div class="alert alert-{{ type }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+{% endfor %}
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <form method="POST" action="{{ path('patient_profil') }}">
+            <div class="row g-3">
+                {# CIN - greyed out / readonly #}
+                <div class="col-md-6">
+                    <label for="cin" class="form-label fw-bold">CIN</label>
+                    <input type="text" id="cin" class="form-control bg-light" value="{{ user.cin }}" disabled readonly>
+                    <small class="text-muted">Le CIN ne peut pas être modifié.</small>
+                </div>
+
+                {# Rôle - greyed out #}
+                <div class="col-md-6">
+                    <label for="role" class="form-label fw-bold">Rôle</label>
+                    <input type="text" id="role" class="form-control bg-light" value="{{ user.role }}" disabled readonly>
+                </div>
+
+                {# Nom #}
+                <div class="col-md-6">
+                    <label for="name" class="form-label fw-bold">Nom</label>
+                    <input type="text" id="name" name="name" class="form-control" value="{{ user.name }}" required>
+                </div>
+
+                {# Prénom #}
+                <div class="col-md-6">
+                    <label for="last_name" class="form-label fw-bold">Prénom</label>
+                    <input type="text" id="last_name" name="last_name" class="form-control" value="{{ user.lastName }}" required>
+                </div>
+
+                {# Téléphone #}
+                <div class="col-md-6">
+                    <label for="tel" class="form-label fw-bold">Téléphone</label>
+                    <input type="text" id="tel" name="tel" class="form-control" value="{{ user.tel }}" required maxlength="8">
+                </div>
+
+                {# Sexe #}
+                <div class="col-md-6">
+                    <label for="sexe" class="form-label fw-bold">Sexe</label>
+                    <select id="sexe" name="sexe" class="form-select" required>
+                        <option value="M" {{ user.sexe == 'M' ? 'selected' : '' }}>Masculin</option>
+                        <option value="F" {{ user.sexe == 'F' ? 'selected' : '' }}>Féminin</option>
+                    </select>
+                </div>
+
+                {# Date de naissance #}
+                <div class="col-md-6">
+                    <label for="dateNaissance" class="form-label fw-bold">Date de naissance</label>
+                    <input type="date" id="dateNaissance" name="dateNaissance" class="form-control"
+                           value="{{ user.dateNaissance ? user.dateNaissance|date('Y-m-d') : '' }}">
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg me-1"></i> Enregistrer les modifications
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

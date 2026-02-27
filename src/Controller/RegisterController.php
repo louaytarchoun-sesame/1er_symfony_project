@@ -79,7 +79,7 @@ class RegisterController extends AbstractController
 
             $em->persist($profil);
 
-            if (($profil->getRole()) === 'patient') {
+            if (strtoupper($profil->getRole()) === 'PATIENT') {
                 $patient = new Patient();
                 $date = $data->get('date_inscription');
                 if ($date) {

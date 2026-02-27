@@ -25,6 +25,9 @@ class Medecin
     #[ORM\JoinColumn(name: "specialite_id", referencedColumnName: "id")]
     private $specialite;
 
+    #[ORM\Column(name: "localisation", type: "string", length: 500, nullable: true)]
+    private ?string $localisation = null;
+
     public function getId()
     {
         return $this->id;
@@ -65,6 +68,17 @@ class Medecin
 
         return $this;
     }
-}
 
+    public function getLocalisation(): ?string
+    {
+        return $this->localisation;
+    }
+
+    public function setLocalisation(?string $localisation): self
+    {
+        $this->localisation = $localisation;
+
+        return $this;
+    }
+}
 

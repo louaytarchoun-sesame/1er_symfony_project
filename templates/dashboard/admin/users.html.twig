@@ -89,13 +89,13 @@
 {% endblock %}
 
 {% block javascripts %}
-<script>
-document.addEventListener('DOMContentLoaded', function () {
+<script data-turbo-eval="false">
+(function () {
     const input = document.getElementById('searchCin');
     const rows  = document.querySelectorAll('#usersTable tbody tr[data-cin]');
     const noRes = document.getElementById('noResults');
 
-    input.addEventListener('input', function () {
+    input.oninput = function () {
         const query = this.value.trim().toLowerCase();
         let visible = 0;
 
@@ -111,6 +111,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         noRes.classList.toggle('d-none', visible > 0 || query === '');
     });
-});
+})();
 </script>
 {% endblock %}
