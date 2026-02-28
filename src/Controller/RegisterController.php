@@ -51,6 +51,7 @@ class RegisterController extends AbstractController
                 $profil->setRole('PATIENT');
             }
             if ($data->get('image')) $profil->setImage($data->get('image'));
+            if ($data->get('email')) $profil->setEmail($data->get('email'));
             if ($data->get('tel')) $profil->setTel($data->get('tel'));
             if ($data->get('sexe')) $profil->setSexe($data->get('sexe'));
             // Password: hash before storing

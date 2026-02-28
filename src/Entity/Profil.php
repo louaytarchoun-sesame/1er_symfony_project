@@ -30,6 +30,9 @@ class Profil implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $image = null;
 
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $email = null;
+
     #[ORM\Column(type: 'string', length: 8)]
     private ?string $tel = null;
 
@@ -98,6 +101,17 @@ class Profil implements UserInterface, PasswordAuthenticatedUserInterface
     $this->role = $role;
     return $this;
 }
+
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
+
+    public function setEmail(?string $email): static
+    {
+        $this->email = $email;
+        return $this;
+    }
 
     public function getImage(): ?string
     {

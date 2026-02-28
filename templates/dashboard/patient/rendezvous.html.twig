@@ -78,14 +78,19 @@
 {% endblock %}
 
 {% block javascripts %}
-<script data-turbo-eval="false">
+<script>
 (function () {
+    console.log('[rendezvous.html] Script loaded');
     const filter = document.getElementById('filterEtat');
     const rows   = document.querySelectorAll('#rdvTable tbody tr[data-etat]');
     const noRes  = document.getElementById('noResults');
 
+    console.log('[rendezvous.html] filter element:', filter);
+    console.log('[rendezvous.html] rows found:', rows.length);
+
     filter.onchange = function () {
         const val = this.value;
+        console.log('[rendezvous.html] onchange fired, value:', val);
         let visible = 0;
 
         rows.forEach(function (row) {
@@ -98,8 +103,9 @@
             }
         });
 
+        console.log('[rendezvous.html] visible rows:', visible);
         noRes.classList.toggle('d-none', visible > 0);
-    });
+    };
 })();
 </script>
 {% endblock %}

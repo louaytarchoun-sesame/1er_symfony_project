@@ -4,6 +4,18 @@
     {% include 'dashboard/admin/_sidebar.html.twig' %}
 {% endblock %}
 
+{% block stylesheets %}
+<style>
+    .cin-link { cursor: pointer; color: #667eea; text-decoration: underline; font-weight: 600; }
+    .cin-link:hover { color: #764ba2; }
+    .modal-backdrop.show { backdrop-filter: blur(4px); }
+    #userDetailModal .modal-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; }
+    #userDetailModal .nav-tabs .nav-link.active { color: #667eea; border-bottom: 2px solid #667eea; }
+    .detail-label { font-weight: 600; color: #555; }
+    .profile-avatar { width: 90px; height: 90px; object-fit: cover; border: 3px solid #667eea; }
+</style>
+{% endblock %}
+
 {% block dashboard_content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2><i class="bi bi-people-fill me-2"></i>Gestion des utilisateurs</h2>
@@ -51,7 +63,11 @@
             {% for user in users %}
                 <tr data-cin="{{ user.cin }}">
                     <td>{{ user.id }}</td>
-                    <td><code>{{ user.cin }}</code></td>
+                    <td>
+                        <span class="cin-link" data-user-id="{{ user.id }}" onclick="openUserModal({{ user.id }})">
+                            {{ user.cin }}
+                        </span>
+                    </td>
                     <td>{{ user.name }}</td>
                     <td>{{ user.lastName }}</td>
                     <td>
@@ -66,7 +82,10 @@
                     <td>{{ user.tel }}</td>
                     <td>{{ user.sexe }}</td>
                     <td class="text-center">
-                        <form method="POST" action="{{ path('admin_user_delete', {id: user.id}) }}"
+                        <button class="btn btn-sm btn-outline-primary me-1" onclick="openUserModal({{ user.id }})">
+                            <i class="bi bi-eye-fill"></i> Voir
+                        </button>
+                        <form method="POST" action="{{ path('admin_user_delete', {id: user.id}) }}" class="d-inline"
                               onsubmit="return confirm('Supprimer {{ user.name }} {{ user.lastName }} ({{ user.cin }}) ? Cette action est irréversible.')">
                             <input type="hidden" name="_token" value="{{ csrf_token('delete_user_' ~ user.id) }}">
                             <button type="submit" class="btn btn-sm btn-outline-danger">
@@ -86,11 +105,179 @@
 </div>
 
 <p id="noResults" class="text-center text-muted mt-3 d-none">Aucun résultat pour cette recherche.</p>
+
+{# ══════════════════════════════════════════════ #}
+{#  USER DETAIL MODAL                            #}
+{# ══════════════════════════════════════════════ #}
+<div class="modal fade" id="userDetailModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-person-badge me-2"></i>Détails de l'utilisateur</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        {# Tabs #}
+        <ul class="nav nav-tabs mb-3" id="userTabs" role="tablist">
+          <li class="nav-item">
+            <button class="nav-link active" id="tab-info" data-bs-toggle="tab" data-bs-target="#pane-info" type="button">
+              <i class="bi bi-info-circle me-1"></i>Informations
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" id="tab-edit" data-bs-toggle="tab" data-bs-target="#pane-edit" type="button">
+              <i class="bi bi-pencil me-1"></i>Modifier
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" id="tab-password" data-bs-toggle="tab" data-bs-target="#pane-password" type="button">
+              <i class="bi bi-key me-1"></i>Mot de passe
+            </button>
+          </li>
+        </ul>
+
+        <div class="tab-content">
+
+          {# ── TAB 1: Info ── #}
+          <div class="tab-pane fade show active" id="pane-info">
+            <div class="text-center mb-3">
+              <img id="infoAvatar" src="" alt="avatar" class="rounded-circle profile-avatar">
+            </div>
+            <div class="row g-2">
+              <div class="col-6"><span class="detail-label">CIN:</span> <span id="infoCin"></span></div>
+              <div class="col-6"><span class="detail-label">Rôle:</span> <span id="infoRole"></span></div>
+              <div class="col-6"><span class="detail-label">Nom:</span> <span id="infoName"></span></div>
+              <div class="col-6"><span class="detail-label">Prénom:</span> <span id="infoLastName"></span></div>
+              <div class="col-6"><span class="detail-label">Téléphone:</span> <span id="infoTel"></span></div>
+              <div class="col-6"><span class="detail-label">Email:</span> <span id="infoEmail"></span></div>
+              <div class="col-6"><span class="detail-label">Sexe:</span> <span id="infoSexe"></span></div>
+              <div class="col-6"><span class="detail-label">Date de naissance:</span> <span id="infoDob"></span></div>
+            </div>
+            <hr>
+            <div class="text-end">
+              <button class="btn btn-outline-danger" id="btnDeleteUser">
+                <i class="bi bi-trash-fill me-1"></i>Supprimer cet utilisateur
+              </button>
+            </div>
+          </div>
+
+          {# ── TAB 2: Edit ── #}
+          <div class="tab-pane fade" id="pane-edit">
+            <form id="editUserForm">
+              <input type="hidden" id="editUserId">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">CIN</label>
+                  <input type="text" class="form-control bg-light" id="editCin" disabled readonly>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Rôle</label>
+                  <select class="form-select" id="editRole">
+                    <option value="PATIENT">Patient</option>
+                    <option value="MEDECIN">Médecin</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Nom</label>
+                  <input type="text" class="form-control" id="editName" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Prénom</label>
+                  <input type="text" class="form-control" id="editLastName" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Téléphone</label>
+                  <input type="text" class="form-control" id="editTel" required maxlength="8">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Email</label>
+                  <input type="email" class="form-control" id="editEmail" placeholder="exemple@mail.com">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Sexe</label>
+                  <select class="form-select" id="editSexe">
+                    <option value="M">Masculin</option>
+                    <option value="F">Féminin</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Date de naissance</label>
+                  <input type="date" class="form-control" id="editDob">
+                </div>
+              </div>
+              <div class="mt-4 text-end">
+                <button type="submit" class="btn btn-primary">
+                  <i class="bi bi-check-lg me-1"></i>Enregistrer
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {# ── TAB 3: Password ── #}
+          <div class="tab-pane fade" id="pane-password">
+            <form id="resetPasswordForm">
+              <input type="hidden" id="pwUserId">
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="form-label fw-bold">Nouveau mot de passe</label>
+                  <div class="input-group">
+                    <input type="password" class="form-control" id="pwNew" required minlength="6">
+                    <button class="btn btn-outline-secondary" type="button" onclick="togglePw('pwNew',this)"><i class="bi bi-eye"></i></button>
+                  </div>
+                </div>
+                <div class="col-12">
+                  <label class="form-label fw-bold">Confirmer le mot de passe</label>
+                  <div class="input-group">
+                    <input type="password" class="form-control" id="pwConfirm" required minlength="6">
+                    <button class="btn btn-outline-secondary" type="button" onclick="togglePw('pwConfirm',this)"><i class="bi bi-eye"></i></button>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-4 text-end">
+                <button type="submit" class="btn btn-warning">
+                  <i class="bi bi-key me-1"></i>Réinitialiser le mot de passe
+                </button>
+              </div>
+            </form>
+          </div>
+
+        </div>{# /tab-content #}
+      </div>{# /modal-body #}
+
+    </div>
+  </div>
+</div>
+
+{# Delete confirmation modal #}
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-danger text-white">
+        <h6 class="modal-title"><i class="bi bi-exclamation-triangle me-1"></i>Confirmation</h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center">
+        <p>Êtes-vous sûr de vouloir supprimer cet utilisateur ?</p>
+        <p class="fw-bold text-danger" id="deleteUserLabel"></p>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Annuler</button>
+        <form id="deleteUserForm" method="POST" class="d-inline">
+          <input type="hidden" name="_token" id="deleteToken">
+          <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash me-1"></i>Supprimer</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block javascripts %}
-<script data-turbo-eval="false">
+<script>
 (function () {
+    /* ── Search filter ── */
     const input = document.getElementById('searchCin');
     const rows  = document.querySelectorAll('#usersTable tbody tr[data-cin]');
     const noRes = document.getElementById('noResults');
@@ -98,19 +285,180 @@
     input.oninput = function () {
         const query = this.value.trim().toLowerCase();
         let visible = 0;
-
         rows.forEach(function (row) {
             const cin = row.getAttribute('data-cin').toLowerCase();
-            if (cin.includes(query)) {
-                row.style.display = '';
-                visible++;
-            } else {
-                row.style.display = 'none';
-            }
+            if (cin.includes(query)) { row.style.display = ''; visible++; }
+            else { row.style.display = 'none'; }
         });
-
         noRes.classList.toggle('d-none', visible > 0 || query === '');
-    });
+    };
 })();
+
+/* ── CSRF tokens map (for delete) ── */
+const csrfTokens = {
+    {% for user in users %}
+    {{ user.id }}: "{{ csrf_token('delete_user_' ~ user.id) }}"{{ not loop.last ? ',' : '' }}
+    {% endfor %}
+};
+
+const userModal = new bootstrap.Modal(document.getElementById('userDetailModal'));
+const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+let currentUserId = null;
+
+/* ── Open modal & fetch user data ── */
+function openUserModal(id) {
+    currentUserId = id;
+    // Reset to info tab
+    const infoTab = document.getElementById('tab-info');
+    bootstrap.Tab.getOrCreateInstance(infoTab).show();
+
+    fetch("{{ path('admin_user_detail', {id: '__ID__'}) }}".replace('__ID__', id))
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) { alert(data.error); return; }
+
+            // Info pane
+            const avatarUrl = data.image
+                ? "{{ asset('uploads/') }}" + data.image
+                : "https://ui-avatars.com/api/?name=" + encodeURIComponent(data.name + ' ' + data.lastName) + "&background=667eea&color=fff&size=90";
+            document.getElementById('infoAvatar').src = avatarUrl;
+            document.getElementById('infoCin').textContent = data.cin;
+            document.getElementById('infoRole').innerHTML = roleBadge(data.role);
+            document.getElementById('infoName').textContent = data.name;
+            document.getElementById('infoLastName').textContent = data.lastName;
+            document.getElementById('infoTel').textContent = data.tel;
+            document.getElementById('infoEmail').textContent = data.email || '—';
+            document.getElementById('infoSexe').textContent = data.sexe === 'M' ? 'Masculin' : 'Féminin';
+            document.getElementById('infoDob').textContent = data.dateNaissance || '—';
+
+            // Edit pane
+            document.getElementById('editUserId').value = data.id;
+            document.getElementById('editCin').value = data.cin;
+            document.getElementById('editRole').value = data.role;
+            document.getElementById('editName').value = data.name;
+            document.getElementById('editLastName').value = data.lastName;
+            document.getElementById('editTel').value = data.tel;
+            document.getElementById('editEmail').value = data.email || '';
+            document.getElementById('editSexe').value = data.sexe;
+            document.getElementById('editDob').value = data.dateNaissance || '';
+
+            // Password pane
+            document.getElementById('pwUserId').value = data.id;
+            document.getElementById('pwNew').value = '';
+            document.getElementById('pwConfirm').value = '';
+
+            userModal.show();
+        })
+        .catch(err => { console.error(err); alert('Erreur de chargement.'); });
+}
+
+function roleBadge(role) {
+    if (role === 'PATIENT') return '<span class="badge bg-info">Patient</span>';
+    if (role === 'MEDECIN') return '<span class="badge bg-success">Médecin</span>';
+    return '<span class="badge bg-secondary">' + role + '</span>';
+}
+
+/* ── Delete button inside info tab ── */
+document.getElementById('btnDeleteUser').addEventListener('click', function () {
+    if (!currentUserId) return;
+    const name = document.getElementById('infoName').textContent + ' ' + document.getElementById('infoLastName').textContent;
+    const cin = document.getElementById('infoCin').textContent;
+    document.getElementById('deleteUserLabel').textContent = name + ' (' + cin + ')';
+    document.getElementById('deleteUserForm').action = "{{ path('admin_user_delete', {id: '__ID__'}) }}".replace('__ID__', currentUserId);
+    document.getElementById('deleteToken').value = csrfTokens[currentUserId] || '';
+    userModal.hide();
+    deleteModal.show();
+});
+
+/* ── Edit form submit (AJAX) ── */
+document.getElementById('editUserForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const id = document.getElementById('editUserId').value;
+    const payload = {
+        name: document.getElementById('editName').value,
+        lastName: document.getElementById('editLastName').value,
+        email: document.getElementById('editEmail').value,
+        tel: document.getElementById('editTel').value,
+        sexe: document.getElementById('editSexe').value,
+        role: document.getElementById('editRole').value,
+        dateNaissance: document.getElementById('editDob').value
+    };
+
+    fetch("{{ path('admin_user_update', {id: '__ID__'}) }}".replace('__ID__', id), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            showToast('success', data.message);
+            userModal.hide();
+            setTimeout(() => location.reload(), 800);
+        } else {
+            showToast('danger', data.error || 'Erreur lors de la mise à jour.');
+        }
+    })
+    .catch(() => showToast('danger', 'Erreur réseau.'));
+});
+
+/* ── Reset password form submit (AJAX) ── */
+document.getElementById('resetPasswordForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const id = document.getElementById('pwUserId').value;
+    const newPw = document.getElementById('pwNew').value;
+    const confirmPw = document.getElementById('pwConfirm').value;
+
+    if (newPw !== confirmPw) {
+        showToast('danger', 'Les mots de passe ne correspondent pas.');
+        return;
+    }
+    if (newPw.length < 6) {
+        showToast('danger', 'Le mot de passe doit contenir au moins 6 caractères.');
+        return;
+    }
+
+    fetch("{{ path('admin_user_reset_password', {id: '__ID__'}) }}".replace('__ID__', id), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: newPw })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            showToast('success', data.message);
+            document.getElementById('pwNew').value = '';
+            document.getElementById('pwConfirm').value = '';
+        } else {
+            showToast('danger', data.error || 'Erreur.');
+        }
+    })
+    .catch(() => showToast('danger', 'Erreur réseau.'));
+});
+
+/* ── Toggle password visibility ── */
+function togglePw(inputId, btn) {
+    const el = document.getElementById(inputId);
+    const icon = btn.querySelector('i');
+    if (el.type === 'password') { el.type = 'text'; icon.classList.replace('bi-eye', 'bi-eye-slash'); }
+    else { el.type = 'password'; icon.classList.replace('bi-eye-slash', 'bi-eye'); }
+}
+
+/* ── Toast helper ── */
+function showToast(type, msg) {
+    let container = document.getElementById('toastContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toastContainer';
+        container.style.cssText = 'position:fixed;top:20px;right:20px;z-index:9999;';
+        document.body.appendChild(container);
+    }
+    const toast = document.createElement('div');
+    toast.className = 'alert alert-' + type + ' alert-dismissible fade show shadow';
+    toast.style.cssText = 'min-width:300px;margin-bottom:8px;';
+    toast.innerHTML = msg + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+    container.appendChild(toast);
+    setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 200); }, 4000);
+}
 </script>
 {% endblock %}

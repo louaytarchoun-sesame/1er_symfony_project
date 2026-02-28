@@ -1,44 +1,121 @@
 {% extends 'base_auth.html.twig' %}
 
-{% block title %}Login{% endblock %}
+{% block title %}Se connecter - MedGestion{% endblock %}
 
 {% block stylesheets %}
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+  .login-wrapper {
+    min-height: calc(100vh - 80px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .login-card {
+    border: none;
+    border-radius: 1.2rem;
+    overflow: hidden;
+    max-width: 900px;
+    width: 100%;
+  }
+  .login-brand {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2rem;
+    text-align: center;
+  }
+  .login-brand-icon {
+    width: 80px; height: 80px;
+    background: rgba(255,255,255,.15);
+    border-radius: 1.2rem;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.4rem;
+    margin-bottom: 1.2rem;
+  }
+  .login-form { padding: 2.5rem; }
+  .form-control:focus, .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 .2rem rgba(102,126,234,.2);
+  }
+  .btn-gradient {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border: none; color: #fff;
+    border-radius: .6rem;
+    padding: .6rem;
+    font-weight: 600;
+    transition: opacity .2s;
+  }
+  .btn-gradient:hover { opacity: .9; color: #fff; }
+</style>
 {% endblock %}
 
 {% block body %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h3 class="card-title mb-4">Login</h3>
+<div class="login-wrapper">
+  <div class="card login-card shadow-lg">
+    <div class="row g-0">
 
-                    {% for label, messages in app.flashes %}
-                        {% for msg in messages %}
-                            <div class="alert alert-{{ label }}">{{ msg }}</div>
-                        {% endfor %}
-                    {% endfor %}
-
-                    <form method="post" action="{{ path('app_login') }}">
-                        <div class="mb-3">
-                            <label class="form-label">CIN</label>
-                            <input name="cin" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Password</label>
-                            <input name="password" type="password" class="form-control" required>
-                        </div>
-                        <div class="d-grid">
-                            <button class="btn btn-primary">Login</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+      {# Left branded panel #}
+      <div class="col-md-5 login-brand d-none d-md-flex">
+        <div class="login-brand-icon"><i class="bi bi-heart-pulse-fill"></i></div>
+        <h3 class="fw-bold mb-2">MedGestion</h3>
+        <p class="opacity-75 mb-4">Votre plateforme de gestion médicale</p>
+        <div class="mt-auto">
+          <small class="opacity-50">Pas encore de compte ?</small><br>
+          <a href="{{ path('app_register') }}" class="btn btn-outline-light btn-sm rounded-pill mt-2 px-4">
+            <i class="bi bi-person-plus me-1"></i>Créer un compte
+          </a>
         </div>
+      </div>
+
+      {# Right login form #}
+      <div class="col-md-7">
+        <div class="login-form">
+          <h3 class="fw-bold mb-1">Bienvenue</h3>
+          <p class="text-muted mb-4">Connectez-vous à votre espace personnel</p>
+
+          {% for label, messages in app.flashes %}
+            {% for msg in messages %}
+              <div class="alert alert-{{ label }} alert-dismissible fade show py-2" role="alert">
+                {{ msg }}
+                <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+              </div>
+            {% endfor %}
+          {% endfor %}
+
+          <form method="post" action="{{ path('app_login') }}">
+            <div class="mb-3">
+              <label class="form-label fw-semibold"><i class="bi bi-person-vcard me-1"></i>CIN</label>
+              <input name="cin" class="form-control form-control-lg" placeholder="Entrez votre CIN" required autofocus>
+            </div>
+            <div class="mb-4">
+              <label class="form-label fw-semibold"><i class="bi bi-lock me-1"></i>Mot de passe</label>
+              <div class="input-group">
+                <input name="password" type="password" class="form-control form-control-lg" id="loginPassword"
+                       placeholder="Entrez votre mot de passe" required>
+                <button class="btn btn-outline-secondary" type="button"
+                        onclick="let i=document.getElementById('loginPassword'),ic=this.querySelector('i');if(i.type==='password'){i.type='text';ic.classList.replace('bi-eye','bi-eye-slash')}else{i.type='password';ic.classList.replace('bi-eye-slash','bi-eye')}">
+                  <i class="bi bi-eye"></i>
+                </button>
+              </div>
+            </div>
+            <div class="d-grid">
+              <button class="btn btn-gradient btn-lg">
+                <i class="bi bi-box-arrow-in-right me-1"></i>Se connecter
+              </button>
+            </div>
+          </form>
+
+          <p class="text-center text-muted mt-4 mb-0 d-md-none">
+            Pas encore de compte ?
+            <a href="{{ path('app_register') }}" class="fw-semibold" style="color:#667eea;">Créer un compte</a>
+          </p>
+        </div>
+      </div>
+
     </div>
+  </div>
 </div>
-{% block javascripts %}
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-{% endblock %}
 {% endblock %}
