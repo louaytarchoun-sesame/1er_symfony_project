@@ -3,6 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\Profil;
+use App\Entity\Specialite;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 
@@ -10,6 +11,7 @@ class AdminFixture extends Fixture
 {
     public function load(ObjectManager $manager): void
     {
+        // ── Admin user ──
         $repo = $manager->getRepository(Profil::class);
         $existing = $repo->findOneBy(['cin' => '45645645']);
 
@@ -28,5 +30,31 @@ class AdminFixture extends Fixture
             $manager->persist($admin);
             $manager->flush();
         }
+
+        // ── Default specialités ──
+        $specRepo = $manager->getRepository(Specialite::class);
+        $specialites = [
+            'Ophtalmologue',
+            'Dermatologue',
+            'Cardiologue',
+            'Pédiatre',
+            'Neurologue',
+            'Gynécologue',
+            'Orthopédiste',
+            'Psychiatre',
+            'Radiologue',
+            'Endocrinologue',
+        ];
+
+        foreach ($specialites as $label) {
+            $exists = $specRepo->findOneBy(['labelle' => $label]);
+            if (!$exists) {
+                $spec = new Specialite();
+                $spec->setLabelle($label);
+                $manager->persist($spec);
+            }
+        }
+
+        $manager->flush();
     }
 }
