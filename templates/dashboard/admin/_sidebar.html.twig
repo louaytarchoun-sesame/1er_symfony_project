@@ -3,7 +3,7 @@
     {% if app.user %}
     <div class="text-center mb-4">
         {% if app.user.image %}
-            <img src="/{{ app.user.image }}" alt="Photo" class="rounded-circle border border-2 border-white mb-2" style="width:64px;height:64px;object-fit:cover;">
+            <img src="/uploads/{{ app.user.image }}" alt="Photo" class="rounded-circle border border-2 border-white mb-2" style="width:64px;height:64px;object-fit:cover;">
         {% else %}
             <img src="https://ui-avatars.com/api/?name={{ app.user.name|url_encode }}+{{ app.user.lastName|url_encode }}&background=fff&color=667eea&size=64" alt="Avatar" class="rounded-circle border border-2 border-white mb-2" style="width:64px;height:64px;object-fit:cover;">
         {% endif %}
