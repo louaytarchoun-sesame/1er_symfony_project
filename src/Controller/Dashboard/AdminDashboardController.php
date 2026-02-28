@@ -9,8 +9,10 @@ use App\Entity\RendezVous;
 use App\Entity\Specialite;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/dashboard/admin')]
@@ -117,5 +119,80 @@ class AdminDashboardController extends AbstractController
 
         $this->addFlash('success', 'Utilisateur supprimé avec succès.');
         return $this->redirectToRoute('admin_users');
+    }
+
+    // ─── API: Get user details (JSON) ───
+    #[Route('/users/{id}/detail', name: 'admin_user_detail', methods: ['GET'])]
+    public function userDetail(int $id, EntityManagerInterface $em): JsonResponse
+    {
+        $profil = $em->getRepository(Profil::class)->find($id);
+        if (!$profil) {
+            return new JsonResponse(['error' => 'Utilisateur introuvable'], 404);
+        }
+
+        return new JsonResponse([
+            'id'            => $profil->getId(),
+            'cin'           => $profil->getCin(),
+            'name'          => $profil->getName(),
+            'lastName'      => $profil->getLastName(),
+            'role'          => $profil->getRole(),
+            'tel'           => $profil->getTel(),
+            'sexe'          => $profil->getSexe(),
+            'image'         => $profil->getImage(),
+            'dateNaissance' => $profil->getDateNaissance() ? $profil->getDateNaissance()->format('Y-m-d') : null,
+        ]);
+    }
+
+    // ─── API: Update user (JSON) ───
+    #[Route('/users/{id}/update', name: 'admin_user_update', methods: ['POST'])]
+    public function updateUser(int $id, Request $request, EntityManagerInterface $em): JsonResponse
+    {
+        $profil = $em->getRepository(Profil::class)->find($id);
+        if (!$profil) {
+            return new JsonResponse(['error' => 'Utilisateur introuvable'], 404);
+        }
+
+        $data = json_decode($request->getContent(), true);
+        if (!$data) {
+            return new JsonResponse(['error' => 'Données invalides'], 400);
+        }
+
+        try {
+            if (!empty($data['name'])) $profil->setName($data['name']);
+            if (!empty($data['lastName'])) $profil->setLastName($data['lastName']);
+            if (!empty($data['tel'])) $profil->setTel($data['tel']);
+            if (!empty($data['sexe'])) $profil->setSexe($data['sexe']);
+            if (!empty($data['role'])) $profil->setRole($data['role']);
+            if (!empty($data['dateNaissance'])) {
+                $profil->setDateNaissance(new \DateTime($data['dateNaissance']));
+            }
+
+            $em->flush();
+            return new JsonResponse(['success' => true, 'message' => 'Utilisateur mis à jour avec succès.']);
+        } catch (\Exception $e) {
+            return new JsonResponse(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    // ─── API: Reset user password (JSON) ───
+    #[Route('/users/{id}/reset-password', name: 'admin_user_reset_password', methods: ['POST'])]
+    public function resetPassword(int $id, Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $hasher): JsonResponse
+    {
+        $profil = $em->getRepository(Profil::class)->find($id);
+        if (!$profil) {
+            return new JsonResponse(['error' => 'Utilisateur introuvable'], 404);
+        }
+
+        $data = json_decode($request->getContent(), true);
+        $password = $data['password'] ?? null;
+
+        if (!$password || strlen($password) < 6) {
+            return new JsonResponse(['error' => 'Le mot de passe doit contenir au moins 6 caractères.'], 400);
+        }
+
+        $profil->setPassword($hasher->hashPassword($profil, $password));
+        $em->flush();
+
+        return new JsonResponse(['success' => true, 'message' => 'Mot de passe réinitialisé avec succès.']);
     }
 }

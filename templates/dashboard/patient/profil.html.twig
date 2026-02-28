@@ -18,9 +18,34 @@
     {% endfor %}
 {% endfor %}
 
-<div class="card shadow-sm">
+{# ── Profile Information Card ── #}
+<div class="card shadow-sm mb-4">
     <div class="card-body">
-        <form method="POST" action="{{ path('patient_profil') }}">
+        <form method="POST" action="{{ path('patient_profil') }}" enctype="multipart/form-data">
+
+            {# Profile Image Section #}
+            <div class="text-center mb-4">
+                <div class="position-relative d-inline-block">
+                    {% if user.image %}
+                        <img src="{{ asset('uploads/' ~ user.image) }}" alt="Photo de profil"
+                             class="rounded-circle border border-3 border-primary shadow"
+                             style="width: 130px; height: 130px; object-fit: cover;" id="profilePreview">
+                    {% else %}
+                        <img src="https://ui-avatars.com/api/?name={{ user.name }}+{{ user.lastName }}&background=667eea&color=fff&size=130"
+                             alt="Photo de profil"
+                             class="rounded-circle border border-3 border-primary shadow"
+                             style="width: 130px; height: 130px; object-fit: cover;" id="profilePreview">
+                    {% endif %}
+                    <label for="profileImage" class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center"
+                           style="width: 36px; height: 36px; cursor: pointer; border: 2px solid #fff;">
+                        <i class="bi bi-camera-fill"></i>
+                    </label>
+                    <input type="file" id="profileImage" name="profileImage" accept="image/*" class="d-none"
+                           onchange="if(this.files[0]){document.getElementById('profilePreview').src=URL.createObjectURL(this.files[0])}">
+                </div>
+                <p class="text-muted mt-2 mb-0"><small>Cliquez sur l'icône pour changer la photo</small></p>
+            </div>
+
             <div class="row g-3">
                 {# CIN - greyed out / readonly #}
                 <div class="col-md-6">
@@ -78,4 +103,66 @@
         </form>
     </div>
 </div>
+
+{# ── Password Change Card ── #}
+<div class="card shadow-sm">
+    <div class="card-header bg-white">
+        <h5 class="mb-0"><i class="bi bi-shield-lock me-2"></i>Changer le mot de passe</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ path('patient_change_password') }}">
+            <div class="row g-3">
+                <div class="col-md-12">
+                    <label for="old_password" class="form-label fw-bold">Ancien mot de passe</label>
+                    <div class="input-group">
+                        <input type="password" id="old_password" name="old_password" class="form-control" required>
+                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('old_password', this)">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label for="new_password" class="form-label fw-bold">Nouveau mot de passe</label>
+                    <div class="input-group">
+                        <input type="password" id="new_password" name="new_password" class="form-control" required minlength="6">
+                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('new_password', this)">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label for="confirm_password" class="form-label fw-bold">Confirmer le nouveau mot de passe</label>
+                    <div class="input-group">
+                        <input type="password" id="confirm_password" name="confirm_password" class="form-control" required minlength="6">
+                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirm_password', this)">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-warning">
+                    <i class="bi bi-key me-1"></i> Changer le mot de passe
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function togglePassword(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const icon = btn.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('bi-eye', 'bi-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.replace('bi-eye-slash', 'bi-eye');
+    }
+}
+</script>
 {% endblock %}

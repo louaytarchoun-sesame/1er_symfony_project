@@ -7,7 +7,7 @@
         {% else %}
             <img src="https://ui-avatars.com/api/?name={{ app.user.name|url_encode }}+{{ app.user.lastName|url_encode }}&background=fff&color=667eea&size=64" alt="Avatar" class="rounded-circle border border-2 border-white mb-2" style="width:64px;height:64px;object-fit:cover;">
         {% endif %}
-        <div class="fw-semibold" style="font-size:.95rem;">👋 Hello, Admin {{ app.user.lastName }}</div>
+        <div class="fw-semibold" style="font-size:.95rem;">👋 Hello, Dr.{{ app.user.lastName }}</div>
     </div>
     <hr class="border-white opacity-50 mt-0 mb-3">
     {% endif %}
