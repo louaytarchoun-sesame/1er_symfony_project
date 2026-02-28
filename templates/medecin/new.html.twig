@@ -1,13 +1,49 @@
-{% extends 'base.html.twig' %}
+{% extends 'dashboard/layout.html.twig' %}
 
-{% block title %}Ajouter un medecin{% endblock %}
+{% block title %}Ajouter un médecin{% endblock %}
 
-{% block body %}
-<h1>Ajouter un medecin</h1>
-{{ form_start(form) }}
-    {{ form_row(form.dateEmbauche) }}
-    {{ form_row(form.specialite) }}
-    <button class="btn btn-success">Enregistrer</button>
-{{ form_end(form) }}
-<a href="{{ path('medecin_index') }}" class="btn btn-secondary mt-3">Retour à la liste</a>
+{% block sidebar %}
+    {% include 'dashboard/admin/_sidebar.html.twig' %}
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h2 class="fw-bold mb-0"><i class="bi bi-person-plus-fill text-success me-2"></i>Ajouter un médecin</h2>
+        <p class="text-muted mb-0">Nouveau médecin dans le système</p>
+    </div>
+    <a href="{{ path('medecin_index') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Retour
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white fw-semibold py-3">
+                <i class="bi bi-card-list me-1"></i>Informations du médecin
+            </div>
+            <div class="card-body p-4">
+                {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+                    <div class="mb-3">
+                        {{ form_label(form.dateEmbauche, 'Date d\'embauche', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                        {{ form_widget(form.dateEmbauche, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_errors(form.dateEmbauche) }}
+                    </div>
+                    <div class="mb-4">
+                        {{ form_label(form.specialite, 'Spécialité', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                        {{ form_widget(form.specialite, {'attr': {'class': 'form-select'}}) }}
+                        {{ form_errors(form.specialite) }}
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-success px-4">
+                            <i class="bi bi-check-lg me-1"></i>Enregistrer
+                        </button>
+                        <a href="{{ path('medecin_index') }}" class="btn btn-outline-secondary">Annuler</a>
+                    </div>
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

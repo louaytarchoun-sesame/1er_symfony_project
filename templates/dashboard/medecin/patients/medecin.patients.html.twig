@@ -1,42 +1,201 @@
 {% extends 'dashboard/layout.html.twig' %}
 
+{% block title %}Mes Patients - Espace Médecin{% endblock %}
+
 {% block sidebar %}
     {% include 'dashboard/medecin/_sidebar.html.twig' %}
 {% endblock %}
 
+{% block stylesheets %}
+<style>
+    .patient-row { cursor: pointer; }
+    .patient-row:hover td { background: rgba(102,126,234,.06); }
+    .modal-backdrop.show { backdrop-filter: blur(4px); }
+    #patientModal .modal-header { background: linear-gradient(135deg,#667eea,#764ba2); color:#fff; }
+    .detail-label { font-weight:600; color:#555; }
+    .profile-avatar { width:80px; height:80px; object-fit:cover; border:3px solid #667eea; }
+</style>
+{% endblock %}
+
 {% block dashboard_content %}
-<h2>Mes Patients</h2>
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h2 class="fw-bold mb-0"><i class="bi bi-people-fill me-2 text-primary"></i>Mes Patients</h2>
+        <p class="text-muted mb-0">Liste de vos patients</p>
+    </div>
+</div>
 
-<form method="get" class="mb-3">
-    <input type="text" name="search" placeholder="CIN, Nom, Prénom ou Email" value="{{ search ?? '' }}" class="form-control" style="width:300px;display:inline-block;margin-right:5px;">
-    <button class="btn btn-primary">Filtrer</button>
-    <a href="{{ path('medecin_patients') }}" class="btn btn-secondary">Reset</a>
-</form>
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body py-3">
+        <div class="input-group" style="max-width:400px;">
+            <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+            <input type="text" id="searchInput" placeholder="CIN, Nom, Prénom ou Email"
+                   value="{{ search ?? '' }}" class="form-control border-start-0"
+                   autocomplete="off">
+        </div>
+    </div>
+</div>
 
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>CIN</th>
-            <th>Nom complet</th>
-            <th>Email</th>
-            <th>Nombre RDV</th>
-            <th>Détails</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for patient in patients %}
-            <tr>
-                <td>{{ patient.cin }}</td>
-                <td>{{ patient.name }} {{ patient.last_name }}</td>
-                <td>{{ patient.email ?? '---' }}</td>
-                <td>{{ patient.nbRdv }}</td>
-                <td><a href="#" class="btn btn-sm btn-info">Voir</a></td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="5" class="text-center">Aucun patient trouvé</td>
-            </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white py-3 fw-semibold d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-table me-1"></i>Patients</span>
+        <span id="countBadge" class="badge bg-primary">{{ patients|length }}</span>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover align-middle mb-0" id="patientsTable">
+            <thead class="table-light">
+                <tr>
+                    <th>Patient</th>
+                    <th>CIN</th>
+                    <th>Email</th>
+                    <th class="text-center">Nb RDV avec moi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for patient in patients %}
+                <tr class="patient-row"
+                    data-id="{{ patient.id }}"
+                    data-search="{{ (patient.name ~ ' ' ~ patient.last_name ~ ' ' ~ patient.cin ~ ' ' ~ (patient.email ?? ''))|lower }}"
+                    onclick="openPatientModal({{ patient.id }},'{{ patient.name|e('js') }}','{{ patient.last_name|e('js') }}')">
+                        <td>
+                            <img src="https://ui-avatars.com/api/?name={{ patient.name|url_encode }}+{{ patient.last_name|url_encode }}&background=667eea&color=fff&size=36"
+                                 alt="Avatar" class="rounded-circle me-2" style="width:36px;height:36px;">
+                            <span class="fw-semibold">{{ patient.name }} {{ patient.last_name }}</span>
+                        </td>
+                        <td class="text-muted">{{ patient.cin }}</td>
+                        <td class="text-muted">{{ patient.email ?? '—' }}</td>
+                        <td class="text-center">
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle">{{ patient.nbRdv }}</span>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr id="emptyRow">
+                        <td colspan="4" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox fs-2 d-block mb-2"></i>Aucun patient trouvé.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <p id="noResults" class="text-center text-muted py-3 d-none">Aucun résultat pour cette recherche.</p>
+    </div>
+</div>
+
+{# ── Patient detail modal ── #}
+<div class="modal fade" id="patientModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-person-badge me-2"></i>Détails du patient</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+
+        {# Info row #}
+        <div class="d-flex align-items-center gap-4 mb-4">
+          <img id="modalAvatar" src="" alt="avatar" class="rounded-circle profile-avatar">
+          <div>
+            <h4 id="modalFullName" class="fw-bold mb-1"></h4>
+            <p class="text-muted mb-0" id="modalCin"></p>
+          </div>
+        </div>
+        <div class="row g-3 mb-4">
+          <div class="col-md-4"><span class="detail-label">Email</span><br><span id="modalEmail" class="text-muted"></span></div>
+          <div class="col-md-4"><span class="detail-label">Téléphone</span><br><span id="modalTel" class="text-muted"></span></div>
+          <div class="col-md-4"><span class="detail-label">Sexe</span><br><span id="modalSexe" class="text-muted"></span></div>
+          <div class="col-md-4"><span class="detail-label">Date de naissance</span><br><span id="modalDob" class="text-muted"></span></div>
+        </div>
+
+        <hr>
+        <h6 class="fw-bold mb-3"><i class="bi bi-calendar-event me-1"></i>Rendez-vous avec moi</h6>
+        <div id="modalRdvsContainer">
+          <p class="text-muted text-center">Chargement...</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+<script>
+const patientModal = new bootstrap.Modal(document.getElementById('patientModal'));
+const DETAIL_URL = '{{ path('medecin_patient_detail', {id: '__ID__'}) }}';
+
+function openPatientModal(id, name, lastName) {
+    // Reset
+    document.getElementById('modalAvatar').src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name + ' ' + lastName) + '&background=667eea&color=fff&size=80';
+    document.getElementById('modalFullName').textContent = name + ' ' + lastName;
+    document.getElementById('modalCin').textContent = '';
+    document.getElementById('modalEmail').textContent = 'Chargement...';
+    document.getElementById('modalTel').textContent = '';
+    document.getElementById('modalSexe').textContent = '';
+    document.getElementById('modalDob').textContent = '';
+    document.getElementById('modalRdvsContainer').innerHTML = '<p class="text-muted text-center"><i class="bi bi-hourglass-split"></i> Chargement...</p>';
+    patientModal.show();
+
+    fetch(DETAIL_URL.replace('__ID__', id))
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) { alert(data.error); return; }
+
+            if (data.image) {
+                document.getElementById('modalAvatar').src = '/' + data.image;
+            }
+            document.getElementById('modalFullName').textContent = data.name + ' ' + data.lastName;
+            document.getElementById('modalCin').textContent = 'CIN : ' + (data.cin || '—');
+            document.getElementById('modalEmail').textContent = data.email || '—';
+            document.getElementById('modalTel').textContent = data.tel || '—';
+            document.getElementById('modalSexe').textContent = data.sexe === 'M' ? 'Masculin' : 'Féminin';
+            document.getElementById('modalDob').textContent = data.dateNaissance || '—';
+
+            // RDVs table
+            if (!data.rdvs || data.rdvs.length === 0) {
+                document.getElementById('modalRdvsContainer').innerHTML =
+                    '<p class="text-muted text-center"><i class="bi bi-calendar-x me-1"></i>Aucun rendez-vous.</p>';
+                return;
+            }
+            let html = '<table class="table table-sm table-hover align-middle">';
+            html += '<thead class="table-light"><tr><th>#</th><th>Date</th><th>Motif</th><th>Statut</th></tr></thead><tbody>';
+            data.rdvs.forEach(function (r) {
+                let badge = '';
+                if (r.etat === 'validé') badge = '<span class="badge bg-success">Validé</span>';
+                else if (r.etat === 'refusé') badge = '<span class="badge bg-danger">Refusé</span>';
+                else badge = '<span class="badge bg-warning text-dark">En attente</span>';
+                html += '<tr><td class="text-muted">' + r.id + '</td><td>' + r.date + '</td><td>' + r.motif + '</td><td>' + badge + '</td></tr>';
+            });
+            html += '</tbody></table>';
+            document.getElementById('modalRdvsContainer').innerHTML = html;
+        })
+        .catch(function () {
+            document.getElementById('modalRdvsContainer').innerHTML = '<p class="text-danger text-center">Erreur de chargement.</p>';
+        });
+}
+
+// Dynamic client-side filter
+(function () {
+    const input = document.getElementById('searchInput');
+    const rows = document.querySelectorAll('#patientsTable tbody tr.patient-row');
+    const noResults = document.getElementById('noResults');
+    const countBadge = document.getElementById('countBadge');
+
+    input.addEventListener('input', function () {
+        const query = this.value.trim().toLowerCase();
+        let visible = 0;
+        rows.forEach(function (row) {
+            const search = row.getAttribute('data-search') || '';
+            if (!query || search.includes(query)) {
+                row.style.display = '';
+                visible++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        countBadge.textContent = visible;
+        noResults.classList.toggle('d-none', visible > 0 || !query);
+    });
+})();
+</script>
 {% endblock %}
