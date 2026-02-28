@@ -107,8 +107,9 @@
 {% endblock %}
 
 {% block javascripts %}
-<script data-turbo-eval="false">
+<script>
 (function () {
+    console.log('[dashboard.patient] Script loaded');
     const URL_MEDECINS = '{{ path('patient_api_medecins', {specialiteId: '__SPEC__'}) }}';
     const URL_SLOTS    = '{{ path('patient_api_slots', {medecinId: '__MED__', date: '__DATE__'}) }}';
     const URL_BOOK     = '{{ path('patient_api_book') }}';
@@ -125,7 +126,9 @@
     };
 
     // ── STEP 1: Spécialité changed (use onchange to avoid stacking) ──
+    console.log('[dashboard.patient] specialiteSelect element:', document.getElementById('specialiteSelect'));
     document.getElementById('specialiteSelect').onchange = function () {
+        console.log('[dashboard.patient] specialiteSelect onchange fired, value:', this.value);
         selectedSpecialiteId = this.value;
         if (!selectedSpecialiteId) return;
 
@@ -191,7 +194,9 @@
     };
 
     // ── STEP 3: Date changed → load slots ──
+    console.log('[dashboard.patient] dateInput element:', document.getElementById('dateInput'));
     document.getElementById('dateInput').onchange = function () {
+        console.log('[dashboard.patient] dateInput onchange fired, value:', this.value);
         selectedDate = this.value;
         if (!selectedDate || !selectedMedecinId) return;
 

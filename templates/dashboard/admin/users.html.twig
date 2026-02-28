@@ -89,14 +89,19 @@
 {% endblock %}
 
 {% block javascripts %}
-<script data-turbo-eval="false">
+<script>
 (function () {
+    console.log('[users.html] Script loaded');
     const input = document.getElementById('searchCin');
     const rows  = document.querySelectorAll('#usersTable tbody tr[data-cin]');
     const noRes = document.getElementById('noResults');
 
+    console.log('[users.html] input element:', input);
+    console.log('[users.html] rows found:', rows.length);
+
     input.oninput = function () {
         const query = this.value.trim().toLowerCase();
+        console.log('[users.html] oninput fired, query:', query);
         let visible = 0;
 
         rows.forEach(function (row) {
@@ -109,8 +114,9 @@
             }
         });
 
+        console.log('[users.html] visible rows:', visible);
         noRes.classList.toggle('d-none', visible > 0 || query === '');
-    });
+    };
 })();
 </script>
 {% endblock %}
