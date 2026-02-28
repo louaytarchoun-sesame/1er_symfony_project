@@ -30,6 +30,16 @@ class RegisterController extends AbstractController
                 }
             }
 
+            // Check email uniqueness
+            $emailValue = (string)$data->get('email');
+            if ($emailValue !== '') {
+                $existingEmail = $em->getRepository(Profil::class)->findOneBy(['email' => $emailValue]);
+                if ($existingEmail) {
+                    $this->addFlash('warning', 'This email address is already in use. Please use a different email.');
+                    return $this->redirectToRoute('app_register');
+                }
+            }
+
             $profil = new Profil();
             if ($data->get('cin')) $profil->setCin($data->get('cin'));
             if ($data->get('name')) $profil->setName($data->get('name'));
