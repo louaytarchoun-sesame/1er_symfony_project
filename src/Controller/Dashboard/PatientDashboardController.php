@@ -42,6 +42,7 @@ class PatientDashboardController extends AbstractController
         if ($request->isMethod('POST')) {
             $user->setName($request->request->get('name', $user->getName()));
             $user->setLastName($request->request->get('last_name', $user->getLastName()));
+            $user->setEmail($request->request->get('email', $user->getEmail()));
             $user->setTel($request->request->get('tel', $user->getTel()));
             $user->setSexe($request->request->get('sexe', $user->getSexe()));
 

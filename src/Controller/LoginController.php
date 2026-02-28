@@ -58,6 +58,7 @@ class LoginController extends AbstractController
                 'role' => $role,
                 'name' => $profil->getName(),
                 'lastName' => $profil->getLastName(),
+                'email' => $profil->getEmail(),
                 'image' => $profil->getImage(),
                 'exp' => time() + 3600
             ];

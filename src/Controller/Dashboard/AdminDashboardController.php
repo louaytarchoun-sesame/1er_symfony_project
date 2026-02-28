@@ -136,6 +136,7 @@ class AdminDashboardController extends AbstractController
             'name'          => $profil->getName(),
             'lastName'      => $profil->getLastName(),
             'role'          => $profil->getRole(),
+            'email'         => $profil->getEmail(),
             'tel'           => $profil->getTel(),
             'sexe'          => $profil->getSexe(),
             'image'         => $profil->getImage(),
@@ -160,6 +161,7 @@ class AdminDashboardController extends AbstractController
         try {
             if (!empty($data['name'])) $profil->setName($data['name']);
             if (!empty($data['lastName'])) $profil->setLastName($data['lastName']);
+            if (array_key_exists('email', $data)) $profil->setEmail($data['email']);
             if (!empty($data['tel'])) $profil->setTel($data['tel']);
             if (!empty($data['sexe'])) $profil->setSexe($data['sexe']);
             if (!empty($data['role'])) $profil->setRole($data['role']);

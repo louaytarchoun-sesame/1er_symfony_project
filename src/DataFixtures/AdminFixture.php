@@ -19,6 +19,7 @@ class AdminFixture extends Fixture
             $admin->setName('Admin');
             $admin->setLastName('User');
             $admin->setRole('admin');
+            $admin->setEmail('admin@medgestion.tn');
             $admin->setTel('00000000');
             $admin->setSexe('M');
             // hash password using bcrypt to match controller behavior

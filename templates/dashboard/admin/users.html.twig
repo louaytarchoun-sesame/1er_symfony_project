@@ -151,6 +151,7 @@
               <div class="col-6"><span class="detail-label">Nom:</span> <span id="infoName"></span></div>
               <div class="col-6"><span class="detail-label">Prénom:</span> <span id="infoLastName"></span></div>
               <div class="col-6"><span class="detail-label">Téléphone:</span> <span id="infoTel"></span></div>
+              <div class="col-6"><span class="detail-label">Email:</span> <span id="infoEmail"></span></div>
               <div class="col-6"><span class="detail-label">Sexe:</span> <span id="infoSexe"></span></div>
               <div class="col-6"><span class="detail-label">Date de naissance:</span> <span id="infoDob"></span></div>
             </div>
@@ -189,6 +190,10 @@
                 <div class="col-md-6">
                   <label class="form-label fw-bold">Téléphone</label>
                   <input type="text" class="form-control" id="editTel" required maxlength="8">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Email</label>
+                  <input type="email" class="form-control" id="editEmail" placeholder="exemple@mail.com">
                 </div>
                 <div class="col-md-6">
                   <label class="form-label fw-bold">Sexe</label>
@@ -322,6 +327,7 @@ function openUserModal(id) {
             document.getElementById('infoName').textContent = data.name;
             document.getElementById('infoLastName').textContent = data.lastName;
             document.getElementById('infoTel').textContent = data.tel;
+            document.getElementById('infoEmail').textContent = data.email || '—';
             document.getElementById('infoSexe').textContent = data.sexe === 'M' ? 'Masculin' : 'Féminin';
             document.getElementById('infoDob').textContent = data.dateNaissance || '—';
 
@@ -332,6 +338,7 @@ function openUserModal(id) {
             document.getElementById('editName').value = data.name;
             document.getElementById('editLastName').value = data.lastName;
             document.getElementById('editTel').value = data.tel;
+            document.getElementById('editEmail').value = data.email || '';
             document.getElementById('editSexe').value = data.sexe;
             document.getElementById('editDob').value = data.dateNaissance || '';
 
@@ -370,6 +377,7 @@ document.getElementById('editUserForm').addEventListener('submit', function (e) 
     const payload = {
         name: document.getElementById('editName').value,
         lastName: document.getElementById('editLastName').value,
+        email: document.getElementById('editEmail').value,
         tel: document.getElementById('editTel').value,
         sexe: document.getElementById('editSexe').value,
         role: document.getElementById('editRole').value,
