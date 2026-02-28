@@ -98,50 +98,39 @@ class MedecinDashboardController extends AbstractController
     }
 
     #[Route('/patients', name: 'medecin_patients')]
-    public function patients(
-        Request $request,
-        Security $security,
-        MedecinRepository $medecinRepository,
-        RendezVousRepository $rdvRepository
-    ): Response {
+public function patients(
+    Request $request,
+    Security $security,
+    MedecinRepository $medecinRepository,
+    RendezVousRepository $rdvRepository
+): Response {
 
-        $user = $security->getUser();
-        $medecin = $medecinRepository->findOneBy(['profile' => $user->getId()]);
+    $user = $security->getUser();
+    $medecin = $medecinRepository->findOneBy(['profile' => $user->getId()]);
 
-        $cin   = $request->query->get('cin');
-        $nom   = $request->query->get('nom');
-        $email = $request->query->get('email');
+    $search = $request->query->get('search'); // Champ unique pour tout
 
-        $qb = $rdvRepository->createQueryBuilder('r')
-            ->join('r.patient', 'p')
-            ->join('p.profile', 'pr')
-            ->where('r.medecin = :med')
-            ->setParameter('med', $medecin)
-            ->groupBy('p.id');
+    $qb = $rdvRepository->createQueryBuilder('r')
+        ->join('r.patient', 'p')
+        ->join('p.profile', 'pr')
+        ->where('r.medecin = :med')
+        ->setParameter('med', $medecin)
+        ->groupBy('p.id');
 
-        if ($cin) {
-            $qb->andWhere('pr.cin LIKE :cin')
-               ->setParameter('cin', "%$cin%");
-        }
-
-        if ($nom) {
-            $qb->andWhere('pr.name LIKE :nom OR pr.last_name LIKE :nom')
-               ->setParameter('nom', "%$nom%");
-        }
-
-        if ($email) {
-            $qb->andWhere('pr.email LIKE :email')
-               ->setParameter('email', "%$email%");
-        }
-
-        $patients = $qb->select('p.id, pr.cin, pr.name, pr.last_name, pr.email, COUNT(r.id) as nbRdv')
-                       ->getQuery()
-                       ->getResult();
-
-        return $this->render('dashboard/medecin/patients.html.twig', [
-            'patients' => $patients
-        ]);
+    if ($search) {
+        $qb->andWhere('pr.cin LIKE :search OR pr.name LIKE :search OR pr.last_name LIKE :search OR pr.email LIKE :search')
+           ->setParameter('search', "%$search%");
     }
+
+    $patients = $qb->select('p.id, pr.cin, pr.name, pr.last_name, pr.email, COUNT(r.id) as nbRdv')
+                   ->getQuery()
+                   ->getResult();
+
+    return $this->render('dashboard/medecin/patients/medecin.patients.html.twig', [
+        'patients' => $patients,
+        'search' => $search, // pour pré-remplir le champ dans Twig
+    ]);
+}
 
     #[Route('/rdvs', name: 'medecin_rdvs')]
     public function rdvs(
@@ -178,7 +167,7 @@ class MedecinDashboardController extends AbstractController
 
         $rdvs = $qb->orderBy('r.date', 'DESC')->getQuery()->getResult();
 
-        return $this->render('dashboard/medecin/rdvs.html.twig', [
+        return $this->render('dashboard/medecin/rdvs/medecin.rdvs.html.twig', [
             'rdvs' => $rdvs,
             'dateFilter' => $date,
             'etatFilter' => $etat

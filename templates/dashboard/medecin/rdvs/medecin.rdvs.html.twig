@@ -35,7 +35,7 @@
             <tr>
                 <td>{{ rdv.id }}</td>
                 <td>{{ rdv.date|date('Y-m-d H:i') }}</td>
-                <td>{{ rdv.patient.profile.name }} {{ rdv.patient.profile.last_name }}</td>
+                <td>{{ rdv.patient.profile.name }} {{ rdv.patient.profile.lastName }}</td>
                 <td>{{ rdv.motif }}</td>
                 <td>
                     {% if rdv.etat=='validé' %}<span class="badge bg-success">Validé</span>
