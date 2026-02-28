@@ -24,8 +24,7 @@
             </div>
             <select name="etat" class="form-select" style="max-width:180px;">
                 <option value="">Tous les statuts</option>
-                <option value="validé" {% if etatFilter == 'validé' %}selected{% endif %}>Validé</option>
-                <option value="refusé" {% if etatFilter == 'refusé' %}selected{% endif %}>Refusé</option>
+                <option value="confirmé" {% if etatFilter == 'confirmé' %}selected{% endif %}>Validé</option>
                 <option value="en_attente" {% if etatFilter == 'en_attente' %}selected{% endif %}>En attente</option>
             </select>
             <button class="btn btn-primary px-4">
