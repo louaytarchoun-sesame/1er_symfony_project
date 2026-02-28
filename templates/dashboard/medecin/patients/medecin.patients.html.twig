@@ -1,0 +1,44 @@
+{% extends 'dashboard/layout.html.twig' %}
+
+{% block sidebar %}
+    {% include 'dashboard/medecin/_sidebar.html.twig' %}
+{% endblock %}
+
+{% block dashboard_content %}
+<h2>Mes Patients</h2>
+
+<form method="get" class="mb-3">
+    <input type="text" name="cin" placeholder="CIN" value="{{ app.request.query.get('cin') }}">
+    <input type="text" name="nom" placeholder="Nom / Prénom" value="{{ app.request.query.get('nom') }}">
+    <input type="text" name="email" placeholder="Email" value="{{ app.request.query.get('email') }}">
+    <button class="btn btn-primary">Filtrer</button>
+    <a href="{{ path('medecin_patients') }}" class="btn btn-secondary">Reset</a>
+</form>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>CIN</th>
+            <th>Nom complet</th>
+            <th>Email</th>
+            <th>Nombre RDV</th>
+            <th>Détails</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for patient in patients %}
+            <tr>
+                <td>{{ patient.cin }}</td>
+                <td>{{ patient.name }} {{ patient.last_name }}</td>
+                <td>{{ patient.email ?? '---' }}</td>
+                <td>{{ patient.nbRdv }}</td>
+                <td><a href="#" class="btn btn-sm btn-info">Voir</a></td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="5">Aucun patient trouvé</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -4,6 +4,8 @@ namespace App\Controller\Dashboard;
 use App\Entity\Medecin;
 use App\Form\MedecinType;
 use App\Repository\MedecinRepository;
+use App\Repository\RendezVousRepository;
+use App\Repository\PatientRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
@@ -47,87 +49,153 @@ class MedecinDashboardController extends AbstractController
 
         return $payload;
     }
-
-    #[Route('', name: 'medecin_dashboard', methods: ['GET'])]
-    public function index(Security $security, MedecinRepository $medecinRepository): Response
-{
-    $user = $security->getUser(); // l'utilisateur authentifié via JwtAuthenticator
-
-
-    $profilId = $user->getId();
-    $medecin = $medecinRepository->findOneBy(['profile' => $profilId]);
-
-    if (!$medecin) {
-        throw $this->createNotFoundException('Médecin introuvable pour ce profil.');
-    }
-
-    return $this->render('dashboard/medecin/home/medecin.home.html.twig', [
-        'medecin' => $medecin,
-        'user_payload' => $user, // ou converti en array si nécessaire
-    ]);
-}
-
-    #[Route('/new', name: 'medecin_dashboard_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+ #[Route('', name: 'medecin_redirect', methods: ['GET'])]
+    public function redirectHome(): Response
     {
-        $medecin = new Medecin();
-        $form = $this->createForm(MedecinType::class, $medecin);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->persist($medecin->getProfile());
-            $entityManager->persist($medecin);
-            $entityManager->flush();
-
-            $this->addFlash('success', 'Médecin et profil créés avec succès !');
-            return $this->redirectToRoute('medecin_dashboard');
-        }
-
-        return $this->render('dashboard/medecin/new.html.twig', [
-            'form' => $form->createView(),
-        ]);
-    }
-
-    #[Route('/{id}/profil', name: 'medecin_dashboard_profil', methods: ['GET'])]
-    public function profil(Medecin $medecin): Response
-    {
-        return $this->render('dashboard/medecin/profil/show.html.twig', [
-            'profil' => $medecin->getProfile(),
-        ]);
-    }
-
-    #[Route('/{id}', name: 'medecin_dashboard_show', methods: ['GET'])]
-    public function show(Medecin $medecin): Response
-    {
-        return $this->render('dashboard/medecin/show.html.twig', [
-            'medecin' => $medecin,
-        ]);
-    }
-
-    #[Route('/{id}/edit', name: 'medecin_dashboard_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Medecin $medecin, EntityManagerInterface $entityManager): Response
-    {
-        $form = $this->createForm(MedecinType::class, $medecin);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
-            return $this->redirectToRoute('medecin_dashboard');
-        }
-
-        return $this->render('dashboard/medecin/profil/edit.html.twig', [
-            'form' => $form->createView(),
-            'medecin' => $medecin,
-        ]);
-    }
-
-    #[Route('/{id}/delete', name: 'medecin_dashboard_delete', methods: ['POST'])]
-    public function delete(Request $request, Medecin $medecin, EntityManagerInterface $entityManager): Response
-    {
-        if ($this->isCsrfTokenValid('delete'.$medecin->getId(), $request->request->get('_token'))) {
-            $entityManager->remove($medecin);
-            $entityManager->flush();
-        }
         return $this->redirectToRoute('medecin_dashboard');
     }
-}
+#[Route('/home', name: 'medecin_dashboard', methods: ['GET'])]
+    public function home(
+        Security $security,
+        MedecinRepository $medecinRepository,
+        RendezVousRepository $rdvRepository
+    ): Response {
+
+        $user = $security->getUser();
+        $medecin = $medecinRepository->findOneBy(['profile' => $user->getId()]);
+
+        if (!$medecin) {
+            throw $this->createNotFoundException();
+        }
+
+        // Total RDV
+        $rdvCount = $rdvRepository->count(['medecin' => $medecin]);
+
+        // RDV par statut
+        $rdvByStatus = $rdvRepository->createQueryBuilder('r')
+            ->select('r.etat as etat, COUNT(r.id) as total')
+            ->where('r.medecin = :med')
+            ->setParameter('med', $medecin)
+            ->groupBy('r.etat')
+            ->getQuery()
+            ->getResult();
+
+        // Patients distincts
+        $patientsCount = $rdvRepository->createQueryBuilder('r')
+            ->select('COUNT(DISTINCT p.id)')
+            ->join('r.patient', 'p')
+            ->where('r.medecin = :med')
+            ->setParameter('med', $medecin)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return $this->render('dashboard/medecin/home/medecin.home.html.twig', [
+            'medecin' => $medecin,
+            'rdvCount' => $rdvCount,
+            'patientsCount' => $patientsCount,
+            'rdvByStatus' => $rdvByStatus
+        ]);
+    }
+
+    #[Route('/patients', name: 'medecin_patients')]
+    public function patients(
+        Request $request,
+        Security $security,
+        MedecinRepository $medecinRepository,
+        RendezVousRepository $rdvRepository
+    ): Response {
+
+        $user = $security->getUser();
+        $medecin = $medecinRepository->findOneBy(['profile' => $user->getId()]);
+
+        $cin   = $request->query->get('cin');
+        $nom   = $request->query->get('nom');
+        $email = $request->query->get('email');
+
+        $qb = $rdvRepository->createQueryBuilder('r')
+            ->join('r.patient', 'p')
+            ->join('p.profile', 'pr')
+            ->where('r.medecin = :med')
+            ->setParameter('med', $medecin)
+            ->groupBy('p.id');
+
+        if ($cin) {
+            $qb->andWhere('pr.cin LIKE :cin')
+               ->setParameter('cin', "%$cin%");
+        }
+
+        if ($nom) {
+            $qb->andWhere('pr.name LIKE :nom OR pr.last_name LIKE :nom')
+               ->setParameter('nom', "%$nom%");
+        }
+
+        if ($email) {
+            $qb->andWhere('pr.email LIKE :email')
+               ->setParameter('email', "%$email%");
+        }
+
+        $patients = $qb->select('p.id, pr.cin, pr.name, pr.last_name, pr.email, COUNT(r.id) as nbRdv')
+                       ->getQuery()
+                       ->getResult();
+
+        return $this->render('dashboard/medecin/patients.html.twig', [
+            'patients' => $patients
+        ]);
+    }
+
+    #[Route('/rdvs', name: 'medecin_rdvs')]
+    public function rdvs(
+        Request $request,
+        Security $security,
+        MedecinRepository $medecinRepository,
+        RendezVousRepository $rdvRepository
+    ): Response {
+
+        $user = $security->getUser();
+        $medecin = $medecinRepository->findOneBy(['profile' => $user->getId()]);
+
+        $date = $request->query->get('date');
+        $etat = $request->query->get('etat');
+
+        $qb = $rdvRepository->createQueryBuilder('r')
+            ->join('r.patient', 'p')
+            ->addSelect('p')
+            ->where('r.medecin = :med')
+            ->setParameter('med', $medecin);
+
+        if ($date) {
+            $start = new \DateTime($date.' 00:00:00');
+            $end   = new \DateTime($date.' 23:59:59');
+            $qb->andWhere('r.date BETWEEN :start AND :end')
+               ->setParameter('start', $start)
+               ->setParameter('end', $end);
+        }
+
+        if ($etat) {
+            $qb->andWhere('r.etat = :etat')
+               ->setParameter('etat', $etat);
+        }
+
+        $rdvs = $qb->orderBy('r.date', 'DESC')->getQuery()->getResult();
+
+        return $this->render('dashboard/medecin/rdvs.html.twig', [
+            'rdvs' => $rdvs,
+            'dateFilter' => $date,
+            'etatFilter' => $etat
+        ]);
+    }
+
+    #[Route('/rdv/{id}/status/{value}', name: 'medecin_change_status', methods: ['POST'])]
+    public function changeStatus(
+        RendezVous $rdv,
+        int $value,
+        EntityManagerInterface $em
+    ): Response {
+        $rdv->setEtat($value == 1 ? 'validé' : 'refusé');
+        $rdv->setUpdatedAt(new \DateTime());
+        $em->flush();
+        return $this->redirectToRoute('medecin_rdvs');
+    }
+
+
+    }

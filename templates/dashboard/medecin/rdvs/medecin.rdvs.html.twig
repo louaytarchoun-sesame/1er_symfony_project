@@ -1,0 +1,63 @@
+{% extends 'dashboard/layout.html.twig' %}
+
+{% block sidebar %}
+    {% include 'dashboard/medecin/_sidebar.html.twig' %}
+{% endblock %}
+
+{% block dashboard_content %}
+<h2>Mes Rendez-vous</h2>
+
+<form method="get" class="mb-3">
+    <input type="date" name="date" value="{{ dateFilter }}">
+    <select name="etat">
+        <option value="">Tous</option>
+        <option value="validé" {% if etatFilter=='validé' %}selected{% endif %}>Validé</option>
+        <option value="refusé" {% if etatFilter=='refusé' %}selected{% endif %}>Refusé</option>
+        <option value="en_attente" {% if etatFilter=='en_attente' %}selected{% endif %}>En attente</option>
+    </select>
+    <button class="btn btn-primary">Filtrer</button>
+    <a href="{{ path('medecin_rdvs') }}" class="btn btn-secondary">Reset</a>
+</form>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Date</th>
+            <th>Patient</th>
+            <th>Motif</th>
+            <th>Etat</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for rdv in rdvs %}
+            <tr>
+                <td>{{ rdv.id }}</td>
+                <td>{{ rdv.date|date('Y-m-d H:i') }}</td>
+                <td>{{ rdv.patient.profile.name }} {{ rdv.patient.profile.last_name }}</td>
+                <td>{{ rdv.motif }}</td>
+                <td>
+                    {% if rdv.etat=='validé' %}<span class="badge bg-success">Validé</span>
+                    {% elseif rdv.etat=='refusé' %}<span class="badge bg-danger">Refusé</span>
+                    {% else %}<span class="badge bg-warning text-dark">En attente</span>{% endif %}
+                </td>
+                <td>
+                    {% if rdv.etat != 'validé' %}
+                    <form method="post" action="{{ path('medecin_change_status', {'id': rdv.id,'value':1}) }}" style="display:inline">
+                        <button class="btn btn-success btn-sm">✔</button>
+                    </form>
+                    {% endif %}
+                    {% if rdv.etat != 'refusé' %}
+                    <form method="post" action="{{ path('medecin_change_status', {'id': rdv.id,'value':-1}) }}" style="display:inline">
+                        <button class="btn btn-danger btn-sm">✖</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="6">Aucun rendez-vous trouvé</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
