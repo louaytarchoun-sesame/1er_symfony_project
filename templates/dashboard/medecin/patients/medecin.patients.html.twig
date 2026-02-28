@@ -8,12 +8,31 @@
 
 {% block stylesheets %}
 <style>
-    .patient-row { cursor: pointer; }
-    .patient-row:hover td { background: rgba(102,126,234,.06); }
-    .modal-backdrop.show { backdrop-filter: blur(4px); }
-    #patientModal .modal-header { background: linear-gradient(135deg,#667eea,#764ba2); color:#fff; }
-    .detail-label { font-weight:600; color:#555; }
-    .profile-avatar { width:80px; height:80px; object-fit:cover; border:3px solid #667eea; }
+    .patient-row { cursor: pointer; transition: background .15s; }
+    .patient-row:hover td { background: rgba(102,126,234,.08); }
+
+    /* Blurred backdrop */
+    .modal-backdrop.show { backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); background-color: rgba(0,0,0,.35) !important; }
+
+    #patientModal .modal-header { background: linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:#fff; border-radius: .5rem .5rem 0 0; }
+    #patientModal .modal-content { border-radius: .5rem; overflow: hidden; }
+    .detail-label { font-weight:600; color:#555; font-size:.85rem; }
+    .profile-avatar { width:90px; height:90px; object-fit:cover; border:3px solid #667eea; box-shadow: 0 2px 12px rgba(102,126,234,.25); }
+
+    /* RDV cards */
+    .rdv-cards-container { max-height: 380px; overflow-y: auto; padding-right: 4px; }
+    .rdv-cards-container::-webkit-scrollbar { width: 5px; }
+    .rdv-cards-container::-webkit-scrollbar-thumb { background: #c5c5c5; border-radius: 4px; }
+
+    .rdv-card { border-left: 4px solid #667eea; border-radius: .45rem; background: #f8f9fa; transition: box-shadow .15s, transform .15s; }
+    .rdv-card:hover { box-shadow: 0 4px 16px rgba(102,126,234,.15); transform: translateY(-1px); }
+    .rdv-card .rdv-date { font-weight: 700; color: #667eea; font-size: .95rem; }
+    .rdv-card .rdv-motif { color: #444; font-size: .9rem; }
+    .rdv-card .badge { font-size: .78rem; }
+
+    .rdv-card-valide   { border-left-color: #198754; }
+    .rdv-card-refuse    { border-left-color: #dc3545; }
+    .rdv-card-attente   { border-left-color: #ffc107; }
 </style>
 {% endblock %}
 
@@ -83,7 +102,7 @@
 
 {# ── Patient detail modal ── #}
 <div class="modal fade" id="patientModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content border-0 shadow">
       <div class="modal-header">
         <h5 class="modal-title"><i class="bi bi-person-badge me-2"></i>Détails du patient</h5>
@@ -91,7 +110,7 @@
       </div>
       <div class="modal-body">
 
-        {# Info row #}
+        {# ── Patient info section ── #}
         <div class="d-flex align-items-center gap-4 mb-4">
           <img id="modalAvatar" src="" alt="avatar" class="rounded-circle profile-avatar">
           <div>
@@ -99,16 +118,42 @@
             <p class="text-muted mb-0" id="modalCin"></p>
           </div>
         </div>
+
         <div class="row g-3 mb-4">
-          <div class="col-md-4"><span class="detail-label">Email</span><br><span id="modalEmail" class="text-muted"></span></div>
-          <div class="col-md-4"><span class="detail-label">Téléphone</span><br><span id="modalTel" class="text-muted"></span></div>
-          <div class="col-md-4"><span class="detail-label">Sexe</span><br><span id="modalSexe" class="text-muted"></span></div>
-          <div class="col-md-4"><span class="detail-label">Date de naissance</span><br><span id="modalDob" class="text-muted"></span></div>
+          <div class="col-md-6 col-lg-3">
+            <div class="p-2 rounded bg-light">
+              <span class="detail-label"><i class="bi bi-envelope me-1"></i>Email</span><br>
+              <span id="modalEmail" class="text-muted"></span>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-3">
+            <div class="p-2 rounded bg-light">
+              <span class="detail-label"><i class="bi bi-telephone me-1"></i>Téléphone</span><br>
+              <span id="modalTel" class="text-muted"></span>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-3">
+            <div class="p-2 rounded bg-light">
+              <span class="detail-label"><i class="bi bi-gender-ambiguous me-1"></i>Sexe</span><br>
+              <span id="modalSexe" class="text-muted"></span>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-3">
+            <div class="p-2 rounded bg-light">
+              <span class="detail-label"><i class="bi bi-calendar3 me-1"></i>Date de naissance</span><br>
+              <span id="modalDob" class="text-muted"></span>
+            </div>
+          </div>
         </div>
 
         <hr>
-        <h6 class="fw-bold mb-3"><i class="bi bi-calendar-event me-1"></i>Rendez-vous avec moi</h6>
-        <div id="modalRdvsContainer">
+
+        {# ── RDV cards section ── #}
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <h6 class="fw-bold mb-0"><i class="bi bi-calendar-event me-1"></i>Rendez-vous avec moi</h6>
+          <span id="rdvCountBadge" class="badge bg-primary">0</span>
+        </div>
+        <div id="modalRdvsContainer" class="rdv-cards-container">
           <p class="text-muted text-center">Chargement...</p>
         </div>
 
@@ -125,15 +170,17 @@ const patientModal = new bootstrap.Modal(document.getElementById('patientModal')
 const DETAIL_URL = '{{ path('medecin_patient_detail', {id: '__ID__'}) }}';
 
 function openPatientModal(id, name, lastName) {
-    // Reset
-    document.getElementById('modalAvatar').src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name + ' ' + lastName) + '&background=667eea&color=fff&size=80';
+    // Reset placeholders
+    document.getElementById('modalAvatar').src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name + ' ' + lastName) + '&background=667eea&color=fff&size=90';
     document.getElementById('modalFullName').textContent = name + ' ' + lastName;
     document.getElementById('modalCin').textContent = '';
     document.getElementById('modalEmail').textContent = 'Chargement...';
     document.getElementById('modalTel').textContent = '';
     document.getElementById('modalSexe').textContent = '';
     document.getElementById('modalDob').textContent = '';
-    document.getElementById('modalRdvsContainer').innerHTML = '<p class="text-muted text-center"><i class="bi bi-hourglass-split"></i> Chargement...</p>';
+    document.getElementById('rdvCountBadge').textContent = '...';
+    document.getElementById('modalRdvsContainer').innerHTML =
+        '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"></div><p class="text-muted mt-2 mb-0">Chargement des données...</p></div>';
     patientModal.show();
 
     fetch(DETAIL_URL.replace('__ID__', id))
@@ -141,9 +188,12 @@ function openPatientModal(id, name, lastName) {
         .then(data => {
             if (data.error) { alert(data.error); return; }
 
+            // Avatar
             if (data.image) {
                 document.getElementById('modalAvatar').src = '/' + data.image;
             }
+
+            // Patient info
             document.getElementById('modalFullName').textContent = data.name + ' ' + data.lastName;
             document.getElementById('modalCin').textContent = 'CIN : ' + (data.cin || '—');
             document.getElementById('modalEmail').textContent = data.email || '—';
@@ -151,26 +201,54 @@ function openPatientModal(id, name, lastName) {
             document.getElementById('modalSexe').textContent = data.sexe === 'M' ? 'Masculin' : 'Féminin';
             document.getElementById('modalDob').textContent = data.dateNaissance || '—';
 
-            // RDVs table
+            // RDV count badge
+            document.getElementById('rdvCountBadge').textContent = data.rdvs ? data.rdvs.length : 0;
+
+            // RDV cards
             if (!data.rdvs || data.rdvs.length === 0) {
                 document.getElementById('modalRdvsContainer').innerHTML =
-                    '<p class="text-muted text-center"><i class="bi bi-calendar-x me-1"></i>Aucun rendez-vous.</p>';
+                    '<div class="text-center py-4"><i class="bi bi-calendar-x fs-1 text-muted d-block mb-2"></i><p class="text-muted mb-0">Aucun rendez-vous avec ce patient.</p></div>';
                 return;
             }
-            let html = '<table class="table table-sm table-hover align-middle">';
-            html += '<thead class="table-light"><tr><th>#</th><th>Date</th><th>Motif</th><th>Statut</th></tr></thead><tbody>';
-            data.rdvs.forEach(function (r) {
+
+            let html = '';
+            data.rdvs.forEach(function (r, idx) {
                 let badge = '';
-                if (r.etat === 'validé') badge = '<span class="badge bg-success">Validé</span>';
-                else if (r.etat === 'refusé') badge = '<span class="badge bg-danger">Refusé</span>';
-                else badge = '<span class="badge bg-warning text-dark">En attente</span>';
-                html += '<tr><td class="text-muted">' + r.id + '</td><td>' + r.date + '</td><td>' + r.motif + '</td><td>' + badge + '</td></tr>';
+                let cardClass = '';
+                let icon = '';
+                if (r.etat === 'validé') {
+                    badge = '<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Validé</span>';
+                    cardClass = 'rdv-card-valide';
+                    icon = 'bi-check-circle-fill text-success';
+                } else if (r.etat === 'refusé') {
+                    badge = '<span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Refusé</span>';
+                    cardClass = 'rdv-card-refuse';
+                    icon = 'bi-x-circle-fill text-danger';
+                } else {
+                    badge = '<span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>En attente</span>';
+                    cardClass = 'rdv-card-attente';
+                    icon = 'bi-hourglass-split text-warning';
+                }
+
+                html += '<div class="card rdv-card ' + cardClass + ' mb-2 p-3">';
+                html += '  <div class="d-flex justify-content-between align-items-start">';
+                html += '    <div class="d-flex align-items-center gap-3">';
+                html += '      <div class="text-center" style="min-width:44px;"><i class="bi ' + icon + ' fs-4"></i></div>';
+                html += '      <div>';
+                html += '        <div class="rdv-date"><i class="bi bi-calendar3 me-1"></i>' + r.date + '</div>';
+                html += '        <div class="rdv-motif mt-1">' + (r.motif || '<em class="text-muted">Pas de motif</em>') + '</div>';
+                html += '      </div>';
+                html += '    </div>';
+                html += '    <div>' + badge + '</div>';
+                html += '  </div>';
+                html += '</div>';
             });
-            html += '</tbody></table>';
+
             document.getElementById('modalRdvsContainer').innerHTML = html;
         })
         .catch(function () {
-            document.getElementById('modalRdvsContainer').innerHTML = '<p class="text-danger text-center">Erreur de chargement.</p>';
+            document.getElementById('modalRdvsContainer').innerHTML =
+                '<div class="text-center py-3"><i class="bi bi-exclamation-triangle fs-2 text-danger d-block mb-2"></i><p class="text-danger mb-0">Erreur de chargement.</p></div>';
         });
 }
 

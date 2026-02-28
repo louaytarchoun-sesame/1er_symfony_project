@@ -3,6 +3,7 @@
 namespace App\EventListener;
 
 use App\Entity\Profil;
+use App\Entity\Specialite;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 
@@ -24,6 +25,7 @@ class AdminInitListener
 
         self::$checked = true;
 
+        // ── Ensure admin exists ──
         $repo = $this->em->getRepository(Profil::class);
         $existing = $repo->findOneBy(['role' => 'ADMIN']);
 
@@ -38,6 +40,35 @@ class AdminInitListener
             $admin->setPassword(password_hash('admin', PASSWORD_BCRYPT));
 
             $this->em->persist($admin);
+            $this->em->flush();
+        }
+
+        // ── Ensure default specialités exist ──
+        $specRepo = $this->em->getRepository(Specialite::class);
+        $specialites = [
+            'Ophtalmologue',
+            'Dermatologue',
+            'Cardiologue',
+            'Pédiatre',
+            'Neurologue',
+            'Gynécologue',
+            'Orthopédiste',
+            'Psychiatre',
+            'Radiologue',
+            'Endocrinologue',
+        ];
+
+        $needsFlush = false;
+        foreach ($specialites as $label) {
+            if (!$specRepo->findOneBy(['labelle' => $label])) {
+                $spec = new Specialite();
+                $spec->setLabelle($label);
+                $this->em->persist($spec);
+                $needsFlush = true;
+            }
+        }
+
+        if ($needsFlush) {
             $this->em->flush();
         }
     }

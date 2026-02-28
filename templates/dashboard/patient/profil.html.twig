@@ -40,8 +40,7 @@
                            style="width: 36px; height: 36px; cursor: pointer; border: 2px solid #fff;">
                         <i class="bi bi-camera-fill"></i>
                     </label>
-                    <input type="file" id="profileImage" name="profileImage" accept="image/*" class="d-none"
-                           onchange="if(this.files[0]){document.getElementById('profilePreview').src=URL.createObjectURL(this.files[0])}">
+                    <input type="file" id="profileImage" name="profileImage" accept="image/*" class="d-none">
                 </div>
                 <p class="text-muted mt-2 mb-0"><small>Cliquez sur l'icône pour changer la photo</small></p>
             </div>
@@ -170,5 +169,29 @@ function togglePassword(inputId, btn) {
         icon.classList.replace('bi-eye-slash', 'bi-eye');
     }
 }
+
+// ── Profile image live preview ──
+document.getElementById('profileImage').addEventListener('change', function () {
+    const file = this.files[0];
+    if (!file) return;
+
+    // Validate it's an image
+    if (!file.type.startsWith('image/')) {
+        alert('Veuillez sélectionner une image valide.');
+        this.value = '';
+        return;
+    }
+
+    // Show preview
+    const preview = document.getElementById('profilePreview');
+    const url = URL.createObjectURL(file);
+    preview.src = url;
+    preview.onload = function () { URL.revokeObjectURL(url); };
+
+    // Add a subtle animation to indicate the change
+    preview.style.transition = 'transform 0.2s';
+    preview.style.transform = 'scale(1.05)';
+    setTimeout(function () { preview.style.transform = 'scale(1)'; }, 300);
+});
 </script>
 {% endblock %}
