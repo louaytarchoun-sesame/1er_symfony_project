@@ -82,8 +82,8 @@
                                 </form>
                             {% endif %}
                             
-                                <form method="post" action="{{ path('medecin_delete_rdv', {'id': rdv.id}) }}" style="display:inline">
-                                    <button class="btn btn-danger btn-sm ms-1" title="Refuser">
+                                <form method="post" action="{{ path('medecin_delete_rdv', {'id': rdv.id}) }}" style="display:inline" onsubmit="return confirm('Voulez-vous vraiment supprimer ce RDV ?');">
+                                    <button class="btn btn-danger btn-sm ms-1" title="Supprimer">
                                         <i class="bi bi-x-lg"></i>
                                     </button>
                                 </form>
