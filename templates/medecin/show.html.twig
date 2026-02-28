@@ -1,15 +1,73 @@
-{% extends 'base.html.twig' %}
+{% extends 'dashboard/layout.html.twig' %}
 
-{% block title %}Détail medecin{% endblock %}
+{% block title %}Détail médecin{% endblock %}
 
-{% block body %}
-<h1>Détail medecin</h1>
-<ul>
-    <li>ID: {{ medecin.id }}</li>
-    <li>Date embauche: {{ medecin.dateEmbauche|date('Y-m-d') }}</li>
-    <li>Profil: {{ medecin.profile ? medecin.profile.name ~ ' ' ~ medecin.profile.lastName : '' }}</li>
-    <li>Spécialité: {{ medecin.specialite ? medecin.specialite.labelle : '' }}</li>
-</ul>
-<a href="{{ path('medecin_edit', {'id': medecin.id}) }}" class="btn btn-warning">Modifier</a>
-<a href="{{ path('medecin_index') }}" class="btn btn-secondary">Retour à la liste</a>
+{% block sidebar %}
+    {% include 'dashboard/admin/_sidebar.html.twig' %}
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h2 class="fw-bold mb-0"><i class="bi bi-person-badge-fill text-success me-2"></i>Fiche médecin</h2>
+        <p class="text-muted mb-0">Détails du médecin</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ path('medecin_edit', {'id': medecin.id}) }}" class="btn btn-warning">
+            <i class="bi bi-pencil me-1"></i>Modifier
+        </a>
+        <a href="{{ path('medecin_index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Retour
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 text-center p-4">
+            {% if medecin.profile and medecin.profile.image %}
+                <img src="/{{ medecin.profile.image }}" alt="Photo" class="rounded-circle mx-auto mb-3" style="width:100px;height:100px;object-fit:cover;">
+            {% else %}
+                <img src="https://ui-avatars.com/api/?name={{ medecin.profile ? medecin.profile.name|url_encode ~ '+' ~ medecin.profile.lastName|url_encode : 'Dr' }}&background=667eea&color=fff&size=100" alt="Avatar" class="rounded-circle mx-auto mb-3" style="width:100px;height:100px;">
+            {% endif %}
+            <h4 class="fw-bold mb-1">Dr. {{ medecin.profile ? medecin.profile.name ~ ' ' ~ medecin.profile.lastName : '—' }}</h4>
+            {% if medecin.specialite %}
+                <span class="badge bg-success fs-6">{{ medecin.specialite.labelle }}</span>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white fw-semibold py-3">
+                <i class="bi bi-info-circle me-1"></i>Informations
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4 text-muted">ID</dt>
+                    <dd class="col-sm-8">{{ medecin.id }}</dd>
+
+                    <dt class="col-sm-4 text-muted">Nom complet</dt>
+                    <dd class="col-sm-8">{{ medecin.profile ? medecin.profile.name ~ ' ' ~ medecin.profile.lastName : '—' }}</dd>
+
+                    <dt class="col-sm-4 text-muted">Spécialité</dt>
+                    <dd class="col-sm-8">{{ medecin.specialite ? medecin.specialite.labelle : '—' }}</dd>
+
+                    <dt class="col-sm-4 text-muted">Date d'embauche</dt>
+                    <dd class="col-sm-8">{{ medecin.dateEmbauche ? medecin.dateEmbauche|date('d/m/Y') : '—' }}</dd>
+
+                    {% if medecin.profile %}
+                    <dt class="col-sm-4 text-muted">Email</dt>
+                    <dd class="col-sm-8">{{ medecin.profile.email ?: '—' }}</dd>
+
+                    <dt class="col-sm-4 text-muted">Téléphone</dt>
+                    <dd class="col-sm-8">{{ medecin.profile.tel ?: '—' }}</dd>
+
+                    <dt class="col-sm-4 text-muted">CIN</dt>
+                    <dd class="col-sm-8">{{ medecin.profile.cin ?: '—' }}</dd>
+                    {% endif %}
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

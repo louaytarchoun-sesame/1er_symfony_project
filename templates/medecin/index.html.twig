@@ -1,46 +1,83 @@
-{% extends 'base.html.twig' %}
+{% extends 'dashboard/layout.html.twig' %}
 
-{% block title %}Liste des medecins{% endblock %}
+{% block title %}Liste des médecins{% endblock %}
 
-{% block body %}
-<h1>Liste des medecins</h1>
-<a href="{{ path('medecin_new') }}" class="btn btn-primary mb-3">Ajouter un medecin</a>
+{% block sidebar %}
+    {% include 'dashboard/admin/_sidebar.html.twig' %}
+{% endblock %}
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Date embauche</th>
-            <th>Profil</th>
-            <th>Spécialité</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-    {% for medecin in medecins %}
-        <tr>
-            <td>{{ medecin.id }}</td>
-            <td>{{ medecin.dateEmbauche ? medecin.dateEmbauche|date('Y-m-d') : '' }}</td>
-            <td>
-                {% if medecin.profile %}
-                    {{ medecin.profile.name }} {{ medecin.profile.lastName }}
-                {% endif %}
-            </td>
-            <td>{{ medecin.specialite ? medecin.specialite.labelle : '' }}</td>
-            <td>
-                <a href="{{ path('medecin_show', {'id': medecin.id}) }}" class="btn btn-info btn-sm">Voir</a>
-                <a href="{{ path('medecin_edit', {'id': medecin.id}) }}" class="btn btn-warning btn-sm">Modifier</a>
-                <form method="post" action="{{ path('medecin_delete', {'id': medecin.id}) }}" style="display:inline-block" onsubmit="return confirm('Supprimer ce medecin ?');">
-                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ medecin.id) }}">
-                    <button class="btn btn-danger btn-sm">Supprimer</button>
-                </form>
-            </td>
-        </tr>
-    {% else %}
-        <tr>
-            <td colspan="5" class="text-center">Aucun médecin trouvé.</td>
-        </tr>
-    {% endfor %}
-    </tbody>
-</table>
+{% block dashboard_content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h2 class="fw-bold mb-0"><i class="bi bi-heart-pulse-fill text-success me-2"></i>Médecins</h2>
+        <p class="text-muted mb-0">Gestion des médecins</p>
+    </div>
+    <a href="{{ path('medecin_new') }}" class="btn btn-success px-4">
+        <i class="bi bi-plus-lg me-1"></i>Ajouter un médecin
+    </a>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white py-3">
+        <span class="fw-semibold"><i class="bi bi-table me-1"></i>Liste des médecins</span>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Médecin</th>
+                    <th>Spécialité</th>
+                    <th>Date d'embauche</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for medecin in medecins %}
+                <tr>
+                    <td class="text-muted">{{ medecin.id }}</td>
+                    <td>
+                        {% if medecin.profile %}
+                            {% if medecin.profile.image %}
+                                <img src="/{{ medecin.profile.image }}" alt="Photo" class="rounded-circle me-2" style="width:36px;height:36px;object-fit:cover;">
+                            {% else %}
+                                <img src="https://ui-avatars.com/api/?name={{ medecin.profile.name|url_encode }}+{{ medecin.profile.lastName|url_encode }}&background=667eea&color=fff&size=36" alt="Avatar" class="rounded-circle me-2" style="width:36px;height:36px;">
+                            {% endif %}
+                            <span class="fw-semibold">Dr. {{ medecin.profile.name }} {{ medecin.profile.lastName }}</span>
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if medecin.specialite %}
+                            <span class="badge bg-success-subtle text-success border border-success-subtle">{{ medecin.specialite.labelle }}</span>
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-muted">{{ medecin.dateEmbauche ? medecin.dateEmbauche|date('d/m/Y') : '—' }}</td>
+                    <td class="text-end">
+                        <a href="{{ path('medecin_show', {'id': medecin.id}) }}" class="btn btn-sm btn-outline-primary me-1">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="{{ path('medecin_edit', {'id': medecin.id}) }}" class="btn btn-sm btn-outline-warning me-1">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form method="post" action="{{ path('medecin_delete', {'id': medecin.id}) }}" style="display:inline" onsubmit="return confirm('Supprimer ce médecin ?')">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ medecin.id) }}">
+                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                        </form>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">
+                        <i class="bi bi-inbox fs-2 d-block mb-2"></i>Aucun médecin trouvé.
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% endblock %}

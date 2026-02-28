@@ -1,62 +1,105 @@
 {% extends 'dashboard/layout.html.twig' %}
 
+{% block title %}Mes Rendez-vous - Espace Médecin{% endblock %}
+
 {% block sidebar %}
     {% include 'dashboard/medecin/_sidebar.html.twig' %}
 {% endblock %}
 
 {% block dashboard_content %}
-<h2>Mes Rendez-vous</h2>
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h2 class="fw-bold mb-0"><i class="bi bi-calendar-event-fill me-2 text-success"></i>Mes Rendez-vous</h2>
+        <p class="text-muted mb-0">Gérez et suivez vos consultations</p>
+    </div>
+</div>
 
-<form method="get" class="mb-3">
-    <input type="date" name="date" value="{{ dateFilter }}">
-    <select name="etat">
-        <option value="">Tous</option>
-        <option value="confirmé" {% if etatFilter=='confirmé' %}selected{% endif %}>Confirmé</option>
-        <option value="en_attente" {% if etatFilter=='en_attente' %}selected{% endif %}>En attente</option>
-    </select>
-    <button class="btn btn-primary">Filtrer</button>
-    <a href="{{ path('medecin_rdvs') }}" class="btn btn-secondary">Reset</a>
-</form>
+{# ── Filters ── #}
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body py-3">
+        <form method="get" class="d-flex gap-2 align-items-center flex-wrap">
+            <div class="input-group" style="max-width:200px;">
+                <span class="input-group-text bg-white"><i class="bi bi-calendar3"></i></span>
+                <input type="date" name="date" value="{{ dateFilter }}" class="form-control border-start-0">
+            </div>
+            <select name="etat" class="form-select" style="max-width:180px;">
+                <option value="">Tous les statuts</option>
+                <option value="validé" {% if etatFilter == 'validé' %}selected{% endif %}>Validé</option>
+                <option value="refusé" {% if etatFilter == 'refusé' %}selected{% endif %}>Refusé</option>
+                <option value="en_attente" {% if etatFilter == 'en_attente' %}selected{% endif %}>En attente</option>
+            </select>
+            <button class="btn btn-primary px-4">
+                <i class="bi bi-funnel me-1"></i>Filtrer
+            </button>
+            {% if dateFilter or etatFilter %}
+                <a href="{{ path('medecin_rdvs') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-lg me-1"></i>Réinitialiser
+                </a>
+            {% endif %}
+        </form>
+    </div>
+</div>
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Date</th>
-            <th>Patient</th>
-            <th>Motif</th>
-            <th>Etat</th>
-            <th>Action</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for rdv in rdvs %}
-            <tr>
-                <td>{{ rdv.id }}</td>
-                <td>{{ rdv.date|date('Y-m-d H:i') }}</td>
-                <td>{{ rdv.patient.profile.name }} {{ rdv.patient.profile.lastName }}</td>
-                <td>{{ rdv.motif }}</td>
-                <td>
-                    {% if rdv.etat=='confirmé' %}
-                        <span class="badge bg-success">Confirmé</span>
-                    {% else %}
-                        <span class="badge bg-warning text-dark">En attente</span>
-                    {% endif %}
-                </td>
-                <td>
-                    {% if rdv.etat != 'confirmé' %}
-                        <form method="post" action="{{ path('medecin_change_status', {'id': rdv.id}) }}" style="display:inline">
-                            <button class="btn btn-success btn-sm">✔</button>
-                        </form>
-                    {% endif %}
-                    <form method="post" action="{{ path('medecin_delete_rdv', {'id': rdv.id}) }}" style="display:inline" onsubmit="return confirm('Voulez-vous vraiment supprimer ce RDV ?');">
-                        <button class="btn btn-danger btn-sm">✖</button>
-                    </form>
-                </td>
-            </tr>
-        {% else %}
-            <tr><td colspan="6">Aucun rendez-vous trouvé</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
+{# ── Table ── #}
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Patient</th>
+                    <th>Date</th>
+                    <th>Motif</th>
+                    <th>Statut</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rdv in rdvs %}
+                    <tr>
+                        <td class="text-muted">{{ rdv.id }}</td>
+                        <td>
+                            <img src="https://ui-avatars.com/api/?name={{ rdv.patient.profile.name|url_encode }}+{{ rdv.patient.profile.lastName|url_encode }}&background=667eea&color=fff&size=32"
+                                 alt="Avatar" class="rounded-circle me-2" style="width:32px;height:32px;">
+                            <span class="fw-semibold">{{ rdv.patient.profile.name }} {{ rdv.patient.profile.lastName }}</span>
+                        </td>
+                        <td class="text-muted">{{ rdv.date|date('d/m/Y H:i') }}</td>
+                        <td>{{ rdv.motif ?: '—' }}</td>
+                        <td>
+                            {% if rdv.etat == 'confirmé' %}
+                                <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Validé</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>En attente</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+
+                            {% if rdv.etat != 'confirmé' %}
+                                <form method="post" action="{{ path('medecin_change_status', {'id': rdv.id}) }}" style="display:inline">
+                                    <button class="btn btn-success btn-sm" title="Valider">
+                                        <i class="bi bi-check-lg"></i>
+                                    </button>
+                                </form>
+                            {% endif %}
+                            
+                                <form method="post" action="{{ path('medecin_delete_rdv', {'id': rdv.id}) }}" style="display:inline">
+                                    <button class="btn btn-danger btn-sm ms-1" title="Refuser">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </form>
+
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            <i class="bi bi-calendar-x fs-2 d-block mb-2"></i>
+                            Aucun rendez-vous trouvé.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% endblock %}

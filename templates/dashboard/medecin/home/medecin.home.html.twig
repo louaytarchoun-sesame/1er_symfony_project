@@ -1,48 +1,128 @@
 {% extends 'dashboard/layout.html.twig' %}
 
+{% block title %}Accueil - Espace Médecin{% endblock %}
+
 {% block sidebar %}
     {% include 'dashboard/medecin/_sidebar.html.twig' %}
 {% endblock %}
 
 {% block dashboard_content %}
-<h2 class="mb-4">Bienvenue Dr. {{ medecin.profile.name }} {{ medecin.profile.lastName }}</h2>
+<h2 class="fw-bold mb-1">Bonjour, Dr. {{ medecin.profile.name }} {{ medecin.profile.lastName }} 👋</h2>
+<p class="text-muted mb-4">{{ medecin.specialite ? medecin.specialite.labelle : 'Médecin généraliste' }}</p>
 
+{# ── Stat cards ── #}
 <div class="row g-3 mb-4">
     <div class="col-md-4">
-        <div class="card text-white bg-primary shadow-sm h-100 text-center">
-            <div class="card-body">
-                <h3>{{ patientsCount }}</h3>
-                <small>Patients</small>
+        <div class="card text-white shadow-sm h-100" style="background:linear-gradient(135deg,#667eea,#764ba2);">
+            <div class="card-body d-flex align-items-center gap-3">
+                <i class="bi bi-people-fill fs-1 opacity-75"></i>
+                <div>
+                    <h2 class="mb-0 fw-bold">{{ patientsCount }}</h2>
+                    <small class="opacity-75">Patients suivis</small>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-md-4">
-        <div class="card text-white bg-success shadow-sm h-100 text-center">
-            <div class="card-body">
-                <h3>{{ rdvCount }}</h3>
-                <small>Rendez-vous</small>
+        <div class="card text-white bg-success shadow-sm h-100">
+            <div class="card-body d-flex align-items-center gap-3">
+                <i class="bi bi-calendar-check-fill fs-1 opacity-75"></i>
+                <div>
+                    <h2 class="mb-0 fw-bold">{{ rdvCount }}</h2>
+                    <small class="opacity-75">Total rendez-vous</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-warning shadow-sm h-100">
+            <div class="card-body d-flex align-items-center gap-3">
+                <i class="bi bi-hourglass-split fs-1 opacity-75"></i>
+                <div>
+                    <h2 class="mb-0 fw-bold">{{ pendingCount }}</h2>
+                    <small class="opacity-75">En attente</small>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<h3>Rendez-vous par statut</h3>
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Statut</th>
-            <th>Nombre</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for row in rdvByStatus %}
-            <tr>
-                <td>{{ row.etat }}</td>
-                <td>{{ row.total }}</td>
-            </tr>
-        {% else %}
-            <tr><td colspan="2">Aucun rendez-vous</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
+{# ── RDV by status ── #}
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white fw-semibold py-3">
+                <i class="bi bi-bar-chart-fill me-1"></i> Rendez-vous par statut
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Statut</th>
+                            <th class="text-end">Nombre</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in rdvByStatus %}
+                            <tr>
+                                <td>
+                                    {% if row.etat == 'validé' or row.etat == 'confirme' or row.etat == 'confirmé' %}
+                                        <span class="badge bg-success">{{ row.etat }}</span>
+                                    {% elseif row.etat == 'refusé' or row.etat == 'annulé' %}
+                                        <span class="badge bg-danger">{{ row.etat }}</span>
+                                    {% elseif row.etat == 'en_attente' %}
+                                        <span class="badge bg-warning text-dark">En attente</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ row.etat }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end fw-bold">{{ row.total }}</td>
+                            </tr>
+                        {% else %}
+                            <tr><td colspan="2" class="text-center text-muted py-3">Aucun rendez-vous</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-7">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white fw-semibold py-3 d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-clock-history me-1"></i> Prochains rendez-vous</span>
+                <a href="{{ path('medecin_rdvs') }}" class="btn btn-sm btn-outline-primary">Voir tout</a>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Patient</th>
+                            <th>Date</th>
+                            <th>Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rdv in upcomingRdvs ?? [] %}
+                            <tr>
+                                <td>{{ rdv.patient.profile.name }} {{ rdv.patient.profile.lastName }}</td>
+                                <td>{{ rdv.date|date('d/m/Y H:i') }}</td>
+                                <td>
+                                    {% if rdv.etat == 'validé' %}
+                                        <span class="badge bg-success">Validé</span>
+                                    {% elseif rdv.etat == 'refusé' %}
+                                        <span class="badge bg-danger">Refusé</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">En attente</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr><td colspan="3" class="text-center text-muted py-3"><i class="bi bi-calendar-x me-1"></i>Aucun rendez-vous à venir</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

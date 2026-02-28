@@ -90,11 +90,15 @@ class MedecinDashboardController extends AbstractController
             ->getQuery()
             ->getSingleScalarResult();
 
+        // RDV en attente
+        $pendingCount = $rdvRepository->count(['medecin' => $medecin, 'etat' => 'en_attente']);
+
         return $this->render('dashboard/medecin/home/medecin.home.html.twig', [
             'medecin' => $medecin,
             'rdvCount' => $rdvCount,
             'patientsCount' => $patientsCount,
-            'rdvByStatus' => $rdvByStatus
+            'rdvByStatus' => $rdvByStatus,
+            'pendingCount' => $pendingCount,
         ]);
     }
 
@@ -194,5 +198,59 @@ public function patients(
         return $this->redirectToRoute('medecin_rdvs');
     }
 
+    #[Route('/patient/{id}/detail', name: 'medecin_patient_detail', methods: ['GET'])]
+    public function patientDetail(
+        int $id,
+        Security $security,
+        MedecinRepository $medecinRepository,
+        RendezVousRepository $rdvRepository,
+        EntityManagerInterface $em
+    ): JsonResponse {
+        $user = $security->getUser();
+        $medecin = $medecinRepository->findOneBy(['profile' => $user->getId()]);
+
+        if (!$medecin) {
+            return $this->json(['error' => 'Médecin introuvable'], 403);
+        }
+
+        $patient = $em->getRepository(\App\Entity\Patient::class)->find($id);
+        if (!$patient) {
+            return $this->json(['error' => 'Patient introuvable'], 404);
+        }
+
+        $profil = $patient->getProfile();
+
+        // RDVs of this patient with this doctor only
+        $rdvs = $rdvRepository->createQueryBuilder('r')
+            ->where('r.medecin = :med AND r.patient = :pat')
+            ->setParameter('med', $medecin)
+            ->setParameter('pat', $patient)
+            ->orderBy('r.date', 'DESC')
+            ->getQuery()
+            ->getResult();
+
+        $rdvData = [];
+        foreach ($rdvs as $rdv) {
+            $rdvData[] = [
+                'id'    => $rdv->getId(),
+                'date'  => $rdv->getDate() ? $rdv->getDate()->format('d/m/Y H:i') : '—',
+                'motif' => $rdv->getMotif() ?: '—',
+                'etat'  => $rdv->getEtat() ?: '—',
+            ];
+        }
+
+        return $this->json([
+            'id'            => $patient->getId(),
+            'cin'           => $profil?->getCin(),
+            'name'          => $profil?->getName(),
+            'lastName'      => $profil?->getLastName(),
+            'email'         => $profil?->getEmail(),
+            'tel'           => $profil?->getTel(),
+            'sexe'          => $profil?->getSexe(),
+            'dateNaissance' => $profil?->getDateNaissance()?->format('d/m/Y'),
+            'image'         => $profil?->getImage(),
+            'rdvs'          => $rdvData,
+        ]);
+    }
 
     }
