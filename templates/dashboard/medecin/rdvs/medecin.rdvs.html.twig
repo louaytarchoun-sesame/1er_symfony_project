@@ -11,8 +11,7 @@
     <input type="date" name="date" value="{{ dateFilter }}">
     <select name="etat">
         <option value="">Tous</option>
-        <option value="validé" {% if etatFilter=='validé' %}selected{% endif %}>Validé</option>
-        <option value="refusé" {% if etatFilter=='refusé' %}selected{% endif %}>Refusé</option>
+        <option value="confirmé" {% if etatFilter=='confirmé' %}selected{% endif %}>Confirmé</option>
         <option value="en_attente" {% if etatFilter=='en_attente' %}selected{% endif %}>En attente</option>
     </select>
     <button class="btn btn-primary">Filtrer</button>
@@ -38,21 +37,21 @@
                 <td>{{ rdv.patient.profile.name }} {{ rdv.patient.profile.lastName }}</td>
                 <td>{{ rdv.motif }}</td>
                 <td>
-                    {% if rdv.etat=='validé' %}<span class="badge bg-success">Validé</span>
-                    {% elseif rdv.etat=='refusé' %}<span class="badge bg-danger">Refusé</span>
-                    {% else %}<span class="badge bg-warning text-dark">En attente</span>{% endif %}
+                    {% if rdv.etat=='confirmé' %}
+                        <span class="badge bg-success">Confirmé</span>
+                    {% else %}
+                        <span class="badge bg-warning text-dark">En attente</span>
+                    {% endif %}
                 </td>
                 <td>
-                    {% if rdv.etat != 'validé' %}
-                    <form method="post" action="{{ path('medecin_change_status', {'id': rdv.id,'value':1}) }}" style="display:inline">
-                        <button class="btn btn-success btn-sm">✔</button>
-                    </form>
+                    {% if rdv.etat != 'confirmé' %}
+                        <form method="post" action="{{ path('medecin_change_status', {'id': rdv.id}) }}" style="display:inline">
+                            <button class="btn btn-success btn-sm">✔</button>
+                        </form>
                     {% endif %}
-                    {% if rdv.etat != 'refusé' %}
-                    <form method="post" action="{{ path('medecin_change_status', {'id': rdv.id,'value':-1}) }}" style="display:inline">
+                    <form method="post" action="{{ path('medecin_delete_rdv', {'id': rdv.id}) }}" style="display:inline" onsubmit="return confirm('Voulez-vous vraiment supprimer ce RDV ?');">
                         <button class="btn btn-danger btn-sm">✖</button>
                     </form>
-                    {% endif %}
                 </td>
             </tr>
         {% else %}
