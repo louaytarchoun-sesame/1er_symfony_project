@@ -2,6 +2,7 @@
 namespace App\Controller\Dashboard;
 
 use App\Entity\Medecin;
+use App\Entity\RendezVous;
 use App\Form\MedecinType;
 use App\Repository\MedecinRepository;
 use App\Repository\RendezVousRepository;
@@ -178,15 +179,22 @@ public function patients(
         ]);
     }
 
-    #[Route('/rdv/{id}/status/{value}', name: 'medecin_change_status', methods: ['POST'])]
-    public function changeStatus(
-        RendezVous $rdv,
-        int $value,
-        EntityManagerInterface $em
-    ): Response {
-        $rdv->setEtat($value == 1 ? 'validé' : 'refusé');
+    #[Route('/rdv/{id}/confirmer', name: 'medecin_change_status', methods: ['POST'])]
+    public function confirmRdv(RendezVous $rdv, EntityManagerInterface $em): Response
+    {
+        $rdv->setEtat('confirmé');
         $rdv->setUpdatedAt(new \DateTime());
         $em->flush();
+
+        return $this->redirectToRoute('medecin_rdvs');
+    }
+
+    #[Route('/rdv/{id}/supprimer', name: 'medecin_delete_rdv', methods: ['POST'])]
+    public function deleteRdv(RendezVous $rdv, EntityManagerInterface $em): Response
+    {
+        $em->remove($rdv);
+        $em->flush();
+
         return $this->redirectToRoute('medecin_rdvs');
     }
 

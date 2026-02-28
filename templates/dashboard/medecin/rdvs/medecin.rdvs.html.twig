@@ -66,29 +66,28 @@
                         <td class="text-muted">{{ rdv.date|date('d/m/Y H:i') }}</td>
                         <td>{{ rdv.motif ?: '—' }}</td>
                         <td>
-                            {% if rdv.etat == 'validé' %}
+                            {% if rdv.etat == 'confirmé' %}
                                 <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Validé</span>
-                            {% elseif rdv.etat == 'refusé' %}
-                                <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Refusé</span>
                             {% else %}
                                 <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>En attente</span>
                             {% endif %}
                         </td>
                         <td class="text-center">
-                            {% if rdv.etat != 'validé' %}
-                                <form method="post" action="{{ path('medecin_change_status', {'id': rdv.id, 'value': 1}) }}" style="display:inline">
+
+                            {% if rdv.etat != 'confirmé' %}
+                                <form method="post" action="{{ path('medecin_change_status', {'id': rdv.id}) }}" style="display:inline">
                                     <button class="btn btn-success btn-sm" title="Valider">
                                         <i class="bi bi-check-lg"></i>
                                     </button>
                                 </form>
                             {% endif %}
-                            {% if rdv.etat != 'refusé' %}
-                                <form method="post" action="{{ path('medecin_change_status', {'id': rdv.id, 'value': -1}) }}" style="display:inline">
-                                    <button class="btn btn-danger btn-sm ms-1" title="Refuser">
+                            
+                                <form method="post" action="{{ path('medecin_delete_rdv', {'id': rdv.id}) }}" style="display:inline" onsubmit="return confirm('Voulez-vous vraiment supprimer ce RDV ?');">
+                                    <button class="btn btn-danger btn-sm ms-1" title="Supprimer">
                                         <i class="bi bi-x-lg"></i>
                                     </button>
                                 </form>
-                            {% endif %}
+
                         </td>
                     </tr>
                 {% else %}
